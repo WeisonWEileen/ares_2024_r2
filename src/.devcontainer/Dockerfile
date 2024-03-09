@@ -11,7 +11,52 @@ RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list &
     apt-get update && \
     apt-get upgrade -y 
 
-RUN apt-get install -y python3-pip git vim
+RUN apt-get update && \
+    apt-get install -y python3-pip \
+    vim  \
+    cmake \
+    g++ \
+    wget \
+    unzip \
+    build-essential \
+    cmake \
+    gfortran \
+    git \
+    libatlas-base-dev \
+    libavcodec-dev  \
+    libavformat-dev \
+    libswscale-dev \
+    libgtk2.0-dev \
+    libjpeg-dev \
+    libopencv-dev \
+    libpng-dev \
+    libtiff-dev \
+    pkg-config \
+    python3-dev \
+    python3-numpy \
+    python3-opencv \
+    python3-pycurl \
+    webp \
+    zlib1g-dev 
+
+#install openCV
+RUN mkdir -p ~/opencv && \
+    cd ~/opencv && \
+    wget -O opencv.zip https://github.com/opencv/opencv/archive/4.x.zip && \
+    unzip opencv.zip && \
+    rm opencv.zip && \
+    cd opencv-4.x && \
+    mkdir build && \ 
+    cd build && \
+    cmake -D CMAKE_BUILD_TYPE=RELEASE \
+    -D CMAKE_INSTALL_PREFIX=/usr/local \
+    -D INSTALL_C_EXAMPLES=ON \
+    -D INSTALL_PYTHON_EXAMPLES=ON \
+    -D BUILD_EXAMPLES=ON .. && \
+    make -j4 && \
+    make install && \ 
+    ldconfig
+
 
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash"  >> ~/.bashrc 
 
