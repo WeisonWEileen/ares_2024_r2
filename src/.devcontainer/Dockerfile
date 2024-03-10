@@ -37,7 +37,8 @@ RUN apt-get update && \
     python3-opencv \
     python3-pycurl \
     webp \
-    zlib1g-dev 
+    zlib1g-dev \
+    gbd \
 
 #install openCV
 RUN mkdir -p ~/opencv && \
@@ -57,7 +58,6 @@ RUN mkdir -p ~/opencv && \
     make install && \ 
     ldconfig
 
-
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash"  >> ~/.bashrc 
 
 ARG USERNAME=USERNAME
@@ -73,8 +73,6 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && apt-get install -y sudo \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
-
-
 
 ENV SHELL /bin/bash
 # ********************************************************
