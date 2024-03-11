@@ -1,5 +1,5 @@
 ARG ROS_DISTRO="humble"
-FROM ros:$ROS_DISTRO
+FROM ros:${ROS_DISTRO}
 
 LABEL author = "weison_pan"
 LABEL email = "weisonweileen@gmail.com"
@@ -38,7 +38,8 @@ RUN apt-get update && \
     python3-pycurl \
     webp \
     zlib1g-dev \
-    gbd \
+    gdb \
+    v4l-utils 
 
 #install openCV
 RUN mkdir -p ~/opencv && \
@@ -58,7 +59,7 @@ RUN mkdir -p ~/opencv && \
     make install && \ 
     ldconfig
 
-RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash"  >> ~/.bashrc 
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash"  >> ~/.bashrc 
 
 ARG USERNAME=USERNAME
 ARG USER_UID=1000

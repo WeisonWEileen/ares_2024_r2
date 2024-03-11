@@ -1,6 +1,7 @@
 {
     "name": "R2_open_cv_ros2",
     "privileged": true,
+    "initializeCommand": "ls",
     "remoteUser": "nvidia",
     "build": {
         "dockerfile": "Dockerfile",
