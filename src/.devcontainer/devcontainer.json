@@ -2,11 +2,11 @@
     "name": "R2_open_cv_ros2",
     "privileged": true,
     "initializeCommand": "ls",
-    "remoteUser": "nvidia",
+    "remoteUser": "jetson",
     "build": {
         "dockerfile": "Dockerfile",
         "args": {
-            "USERNAME": "nvidia"
+            "USERNAME": "jetson"
         }
     },
     "workspaceFolder": "/home/ws",

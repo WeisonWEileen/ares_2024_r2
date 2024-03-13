@@ -1,8 +1,11 @@
 ARG ROS_DISTRO="humble"
-FROM ros:${ROS_DISTRO}
+FROM ros:${ROS_DISTRO} 
+# as basic
 
 LABEL author = "weison_pan"
 LABEL email = "weisonweileen@gmail.com"
+
+USER root
 
 #change the default source to aliyun and make everything up to date
 RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list && \
@@ -11,6 +14,7 @@ RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list &
     apt-get update && \
     apt-get upgrade -y 
 
+#install necessary tools
 RUN apt-get update && \
     apt-get install -y python3-pip \
     vim  \
@@ -59,7 +63,8 @@ RUN mkdir -p ~/opencv && \
     make install && \ 
     ldconfig
 
-RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash"  >> ~/.bashrc 
+RUN apt-get update && \
+    apt-get install -y ros-${ROS_DISTRO}-serial-driver
 
 ARG USERNAME=USERNAME
 ARG USER_UID=1000
@@ -75,11 +80,20 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
+# FROM basic as additional
+
+
+
+USER $USERNAME
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash"  >> ~/.bashrc 
+
+
+
 ENV SHELL /bin/bash
 # ********************************************************
 # * Anything else you want to do like clean up goes here *
 # ********************************************************
 
+
 # [Optional] Set the default user. Omit if you want to keep the default as root.
-USER $USERNAME
 CMD ["/bin/bash"]
