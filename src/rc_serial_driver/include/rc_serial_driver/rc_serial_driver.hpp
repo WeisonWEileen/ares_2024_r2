@@ -36,7 +36,7 @@ namespace rc_serial_driver
     private:
         void getParams();
 
-        void receiveData();
+        // void receiveData();
 
         void sendData(auto_aim_interfaces::msg::Armor::SharedPtr msg);
 
@@ -75,7 +75,7 @@ namespace rc_serial_driver
         rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr latency_pub_;
         // rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
 
-        std::thread receive_thread_;
+        // std::thread receive_thread_;
     };
 } // namespace rm_serial_driver
 

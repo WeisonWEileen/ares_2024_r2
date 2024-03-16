@@ -1,6 +1,3 @@
-// Copyright (c) 2022 ChenJun
-// Licensed under the Apache-2.0 License.
-
 #include <tf2/LinearMath/Quaternion.h>
 
 #include <rclcpp/logging.hpp>
@@ -46,21 +43,21 @@ namespace rc_serial_driver
         // Tracker reset service client
         reset_tracker_client_ = this->create_client<std_srvs::srv::Trigger>("/tracker/reset");
 
-        try
-        {
-            serial_driver_->init_port(device_name_, *device_config_);
-            if (!serial_driver_->port()->is_open())
-            {
-                serial_driver_->port()->open();
-                receive_thread_ = std::thread(&RCSerialDriver::receiveData, this);
-            }
-        }
-        catch (const std::exception &ex)
-        {
-            RCLCPP_ERROR(
-                get_logger(), "Error creating serial port: %s - %s", device_name_.c_str(), ex.what());
-            throw ex;
-        }
+        // try
+        // {
+        //     serial_driver_->init_port(device_name_, *device_config_);
+        //     if (!serial_driver_->port()->is_open())
+        //     {
+        //         serial_driver_->port()->open();
+        //         receive_thread_ = std::thread(&RCSerialDriver::receiveData, this);
+        //     }
+        // }
+        // catch (const std::exception &ex)
+        // {
+        //     RCLCPP_ERROR(
+        //         get_logger(), "Error creating serial port: %s - %s", device_name_.c_str(), ex.what());
+        //     throw ex;
+        // }
 
         // aiming_point_.header.frame_id = "odom";
         // aiming_point_.ns = "aiming_point";
@@ -81,10 +78,10 @@ namespace rc_serial_driver
 
     RCSerialDriver::~RCSerialDriver()
     {
-        if (receive_thread_.joinable())
-        {
-            receive_thread_.join();
-        }
+    //     if (receive_thread_.joinable())
+    //     {
+    //         receive_thread_.join();
+    //     }
 
         if (serial_driver_->port()->is_open())
         {
@@ -177,7 +174,7 @@ namespace rc_serial_driver
 
         try
         {
-            //收到视觉处理完的四个电机的运动速度
+            // 收到视觉处理完的四个电机的运动速度
             SendPacket packet;
             packet.chasis_motor01 = 100;
             packet.chasis_motor02 = 100;

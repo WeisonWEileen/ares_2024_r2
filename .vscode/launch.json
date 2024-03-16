@@ -1,17 +1,30 @@
 {
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+    // // Example launch of a python file
+    // {
+    //   "name": "Launch",
+    //   "type": "cppdbg",
+    //   "request": "launch",
+    //   // "program": "${workspaceFolder}/install/${input:package}/bringup/launch/cleaner_gazebo.py",
+    //   "program": "${workspaceRoot}/src/rc_serial_driver/launch/serial_driver.launch.py",
+    //   "cwd": "${workspaceFolder}"
+    // },
+    // Example gdb launch of a ros executable
     {
-      "name": "C/C++ Runner: Debug Session",
+      "name": "(gdb) Launch",
       "type": "cppdbg",
       "request": "launch",
+      // "program": "${workspaceFolder}/install/lib/${input:package}/${input:program}",
+      "program": "/home/weison/Desktop/rc_opencv/install/rc_serial_driver/lib/rc_serial_driver/rc_serial_driver_node",
       "args": [],
-      "stopAtEntry": false,
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}",
       "externalConsole": false,
-      "cwd": "/home/weison/Desktop/rc_opencv/src/armor_detector/src",
-      "program": "/home/weison/Desktop/rc_opencv/src/armor_detector/src/build/Debug/outDebug",
       "MIMode": "gdb",
-      "miDebuggerPath": "gdb",
       "setupCommands": [
         {
           "description": "Enable pretty-printing for gdb",
@@ -20,5 +33,20 @@
         }
       ]
     }
+  ],
+  "inputs": [
+    {
+      "id": "package",
+      "type": "promptString",
+      "description": "Package name",
+      "default": "learning_ros2"
+    },
+    {
+      "id": "program",
+      "type": "promptString",
+      "description": "Program name",
+      "default": "ros2_talker"
+    }
   ]
 }
+登录后复制

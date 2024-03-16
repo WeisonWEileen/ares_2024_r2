@@ -9,7 +9,7 @@ def generate_launch_description():
     config = os.path.join(
         get_package_share_directory('rc_serial_driver'), 'config', 'serial_driver.yaml')
 
-    rm_serial_driver_node = Node(
+    rc_serial_driver_node = Node(
         package='rc_serial_driver',
         executable='rc_serial_driver_node',
         namespace='',
@@ -18,4 +18,4 @@ def generate_launch_description():
         parameters=[config],
     )
 
-    return LaunchDescription([rm_serial_driver_node])
+    return LaunchDescription([rc_serial_driver_node])
