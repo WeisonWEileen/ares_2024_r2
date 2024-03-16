@@ -20,12 +20,12 @@ namespace rc_auto_aim
     ArmorDetectorNode::ArmorDetectorNode(const rclcpp::NodeOptions &options):Node("armor_detector_node"), count_(0)
     {
         // 创建发布器,设置Node和默认值
-        publisher_ = this->create_publisher<auto_aim_interfaces::msg::Armor>("/tracker/target", 10); // 设置发布频率
+        publisher_ = this->create_publisher<auto_aim_interfaces::msg::Target>("/tracker/target", 10); // 设置发布频率
         timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&ArmorDetectorNode::publish_target, this));
     }
     void ArmorDetectorNode::publish_target()
     {
-        auto message = auto_aim_interfaces::msg::Armor();
+        auto message = auto_aim_interfaces::msg::Target();
         message.header.stamp = this->now();
         message.header.frame_id = "map"; // 可以根据需要修改
         message.center_pixel_point.x = 100.0; // 修改为您需要的值

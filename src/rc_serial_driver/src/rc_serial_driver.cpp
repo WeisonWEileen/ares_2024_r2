@@ -1,3 +1,6 @@
+// Copyright (c) 2022 ChenJun
+// Licensed under the Apache-2.0 License.
+
 #include <tf2/LinearMath/Quaternion.h>
 
 #include <rclcpp/logging.hpp>
@@ -43,21 +46,21 @@ namespace rc_serial_driver
         // Tracker reset service client
         reset_tracker_client_ = this->create_client<std_srvs::srv::Trigger>("/tracker/reset");
 
-        // try
-        // {
-        //     serial_driver_->init_port(device_name_, *device_config_);
-        //     if (!serial_driver_->port()->is_open())
-        //     {
-        //         serial_driver_->port()->open();
-        //         receive_thread_ = std::thread(&RCSerialDriver::receiveData, this);
-        //     }
-        // }
-        // catch (const std::exception &ex)
-        // {
-        //     RCLCPP_ERROR(
-        //         get_logger(), "Error creating serial port: %s - %s", device_name_.c_str(), ex.what());
-        //     throw ex;
-        // }
+        try
+        {
+            serial_driver_->init_port(device_name_, *device_config_);
+            if (!serial_driver_->port()->is_open())
+            {
+                serial_driver_->port()->open();
+                // receive_thread_ = std::thread(&RCSerialDriver::receiveData, this);
+            }
+        }
+        catch (const std::exception &ex)
+        {
+            RCLCPP_ERROR(
+                get_logger(), "Error creating serial port: %s - %s", device_name_.c_str(), ex.what());
+            throw ex;
+        }
 
         // aiming_point_.header.frame_id = "odom";
         // aiming_point_.ns = "aiming_point";
@@ -71,17 +74,17 @@ namespace rc_serial_driver
         // aiming_point_.lifetime = rclcpp::Duration::from_seconds(0.1);
 
         // Create Subscription
-        target_sub_ = this->create_subscription<auto_aim_interfaces::msg::Armor>(
+        target_sub_ = this->create_subscription<auto_aim_interfaces::msg::Target>(
             "/tracker/target", rclcpp::SensorDataQoS(),
             std::bind(&RCSerialDriver::sendData, this, std::placeholders::_1));
     }
 
     RCSerialDriver::~RCSerialDriver()
     {
-    //     if (receive_thread_.joinable())
-    //     {
-    //         receive_thread_.join();
-    //     }
+        if (receive_thread_.joinable())
+        {
+            receive_thread_.join();
+        }
 
         if (serial_driver_->port()->is_open())
         {
@@ -94,93 +97,91 @@ namespace rc_serial_driver
         }
     }
 
-    // void RCSerialDriver::receiveData()
-    // {
-    //     std::vector<uint8_t> header(1);
-    //     std::vector<uint8_t> data;
-    //     data.reserve(sizeof(ReceivePacket));
+    void RCSerialDriver::receiveData()
+    {
+        std::vector<uint8_t> header(1);
+        std::vector<uint8_t> data;
+        data.reserve(sizeof(ReceivePacket));
 
-    //     while (rclcpp::ok())
-    //     {
-    //         try
-    //         {
-    //             serial_driver_->port()->receive(header);
+        while (rclcpp::ok())
+        {
+            try
+            {
+                serial_driver_->port()->receive(header);
 
-    //             if (header[0] == 0x5A)
-    //             {
-    //                 data.resize(sizeof(ReceivePacket) - 1);
-    //                 serial_driver_->port()->receive(data);
+                if (header[0] == 0x5A)
+                {
+                    data.resize(sizeof(ReceivePacket) - 1);
+                    serial_driver_->port()->receive(data);
 
-    //                 data.insert(data.begin(), header[0]);
-    //                 ReceivePacket packet = fromVector(data);
+                    data.insert(data.begin(), header[0]);
+                    ReceivePacket packet = fromVector(data);
 
-    //                 bool crc_ok =
-    //                     crc16::Verify_CRC16_Check_Sum(reinterpret_cast<const uint8_t *>(&packet), sizeof(packet));
-    //                 if (crc_ok)
-    //                 {
-    //                     if (!initial_set_param_ || packet.detect_color != previous_receive_color_)
-    //                     {
-    //                         setParam(rclcpp::Parameter("detect_color", packet.detect_color));
-    //                         previous_receive_color_ = packet.detect_color;
-    //                     }
+                    bool crc_ok =
+                        crc16::Verify_CRC16_Check_Sum(reinterpret_cast<const uint8_t *>(&packet), sizeof(packet));
+                    if (crc_ok)
+                    {
+                        if (!initial_set_param_ || packet.detect_color != previous_receive_color_)
+                        {
+                            setParam(rclcpp::Parameter("detect_color", packet.detect_color));
+                            previous_receive_color_ = packet.detect_color;
+                        }
 
-    //                     if (packet.reset_tracker)
-    //                     {
-    //                         resetTracker();
-    //                     }
+                        if (packet.reset_tracker)
+                        {
+                            resetTracker();
+                        }
 
-    //                     geometry_msgs::msg::TransformStamped t;
-    //                     timestamp_offset_ = this->get_parameter("timestamp_offset").as_double();
-    //                     t.header.stamp = this->now() + rclcpp::Duration::from_seconds(timestamp_offset_);
-    //                     t.header.frame_id = "odom";
-    //                     t.child_frame_id = "gimbal_link";
-    //                     tf2::Quaternion q;
-    //                     q.setRPY(packet.roll, packet.pitch, packet.yaw);
-    //                     t.transform.rotation = tf2::toMsg(q);
-    //                     tf_broadcaster_->sendTransform(t);
+                        geometry_msgs::msg::TransformStamped t;
+                        timestamp_offset_ = this->get_parameter("timestamp_offset").as_double();
+                        t.header.stamp = this->now() + rclcpp::Duration::from_seconds(timestamp_offset_);
+                        t.header.frame_id = "odom";
+                        t.child_frame_id = "gimbal_link";
+                        tf2::Quaternion q;
+                        q.setRPY(packet.roll, packet.pitch, packet.yaw);
+                        t.transform.rotation = tf2::toMsg(q);
+                        tf_broadcaster_->sendTransform(t);
 
-    //                     if (abs(packet.aim_x) > 0.01)
-    //                     {
-    //                         aiming_point_.header.stamp = this->now();
-    //                         aiming_point_.pose.position.x = packet.aim_x;
-    //                         aiming_point_.pose.position.y = packet.aim_y;
-    //                         aiming_point_.pose.position.z = packet.aim_z;
-    //                         marker_pub_->publish(aiming_point_);
-    //                     }
-    //                 }
-    //                 else
-    //                 {
-    //                     RCLCPP_ERROR(get_logger(), "CRC error!");
-    //                 }
-    //             }
-    //             else
-    //             {
-    //                 RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 20, "Invalid header: %02X", header[0]);
-    //             }
-    //         }
-    //         catch (const std::exception &ex)
-    //         {
-    //             RCLCPP_ERROR_THROTTLE(
-    //                 get_logger(), *get_clock(), 20, "Error while receiving data: %s", ex.what());
-    //             reopenPort();
-    //         }
-    //     }
-    // }
+                        // if (abs(packet.aim_x) > 0.01)
+                        // {
+                        //     aiming_point_.header.stamp = this->now();
+                        //     aiming_point_.pose.position.x = packet.aim_x;
+                        //     aiming_point_.pose.position.y = packet.aim_y;
+                        //     aiming_point_.pose.position.z = packet.aim_z;
+                        //     marker_pub_->publish(aiming_point_);
+                        // }
+                    }
+                    else
+                    {
+                        RCLCPP_ERROR(get_logger(), "CRC error!");
+                    }
+                }
+                else
+                {
+                    RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 20, "Invalid header: %02X", header[0]);
+                }
+            }
+            catch (const std::exception &ex)
+            {
+                RCLCPP_ERROR_THROTTLE(
+                    get_logger(), *get_clock(), 20, "Error while receiving data: %s", ex.what());
+                reopenPort();
+            }
+        }
+    }
 
-    void RCSerialDriver::sendData(const auto_aim_interfaces::msg::Armor::SharedPtr msg)
+    void RCSerialDriver::sendData(const auto_aim_interfaces::msg::Target::SharedPtr msg)
     {
         const static std::map<std::string, uint8_t> id_unit8_map{
             {"", 0}, {"outpost", 0}, {"1", 1}, {"1", 1}, {"2", 2}, {"3", 3}, {"4", 4}, {"5", 5}, {"guard", 6}, {"base", 7}};
 
         try
         {
-            // 收到视觉处理完的四个电机的运动速度
             SendPacket packet;
             packet.chasis_motor01 = 100;
             packet.chasis_motor02 = 100;
             packet.chasis_motor03 = 100;
             packet.chasis_motor04 = 100;
-
             crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
 
             std::vector<uint8_t> data = toVector(packet);
@@ -379,7 +380,7 @@ namespace rc_serial_driver
         RCLCPP_INFO(get_logger(), "Reset tracker!");
     }
 
-} // namespace rm_serial_driver
+} // namespace rc_serial_driver
 
 #include "rclcpp_components/register_node_macro.hpp"
 

@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "auto_aim_interfaces/msg/armor.hpp"
+#include "auto_aim_interfaces/msg/target.hpp"
 
 namespace rc_auto_aim
 {
@@ -22,7 +22,7 @@ class ArmorDetectorNode : public rclcpp::Node
         void publish_target();
 
         //declaration of timer 
-        rclcpp::Publisher<auto_aim_interfaces::msg::Armor>::SharedPtr publisher_;
+        rclcpp::Publisher<auto_aim_interfaces::msg::Target>::SharedPtr publisher_;
         rclcpp::TimerBase::SharedPtr timer_;
         size_t count_;
 };

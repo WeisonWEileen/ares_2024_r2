@@ -119,7 +119,9 @@
     "streambuf": "cpp",
     "cinttypes": "cpp",
     "typeinfo": "cpp",
-    "numeric": "cpp"
+    "numeric": "cpp",
+    "*.ipp": "cpp",
+    "forward_list": "cpp"
   },
   "python.analysis.extraPaths": [
     "/home/weison/Desktop/rc_opencv/install/auto_aim_interfaces/local/lib/python3.10/dist-packages",

@@ -1,8 +1,8 @@
 // Copyright (c) 2022 ChenJun
 // Licensed under the Apache-2.0 License.
 
-#ifndef RM_SERIAL_DRIVER__RM_SERIAL_DRIVER_HPP_
-#define RM_SERIAL_DRIVER__RM_SERIAL_DRIVER_HPP_
+#ifndef RC_SERIAL_DRIVER__RC_SERIAL_DRIVER_HPP_
+#define RC_SERIAL_DRIVER__RC_SERIAL_DRIVER_HPP_
 
 #include <tf2_ros/transform_broadcaster.h>
 
@@ -13,7 +13,6 @@
 #include <serial_driver/serial_driver.hpp>
 #include <std_msgs/msg/float64.hpp>
 #include <std_srvs/srv/trigger.hpp>
-// #include <visualization_msgs/msg/marker.hpp>
 
 // C++ system
 #include <future>
@@ -22,7 +21,7 @@
 #include <thread>
 #include <vector>
 
-#include "auto_aim_interfaces/msg/armor.hpp"
+#include "auto_aim_interfaces/msg/target.hpp"
 
 namespace rc_serial_driver
 {
@@ -36,9 +35,9 @@ namespace rc_serial_driver
     private:
         void getParams();
 
-        // void receiveData();
+        void receiveData();
 
-        void sendData(auto_aim_interfaces::msg::Armor::SharedPtr msg);
+        void sendData(auto_aim_interfaces::msg::Target::SharedPtr msg);
 
         void reopenPort();
 
@@ -69,14 +68,14 @@ namespace rc_serial_driver
         double timestamp_offset_ = 0;
         std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
-        rclcpp::Subscription<auto_aim_interfaces::msg::Armor>::SharedPtr target_sub_;
+        rclcpp::Subscription<auto_aim_interfaces::msg::Target>::SharedPtr target_sub_;
 
         // For debug usage
         rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr latency_pub_;
         // rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
 
-        // std::thread receive_thread_;
+        std::thread receive_thread_;
     };
-} // namespace rm_serial_driver
+} // namespace rc_serial_driver
 
-#endif // RM_SERIAL_DRIVER__RM_SERIAL_DRIVER_HPP_
+#endif // RC_SERIAL_DRIVER__RC_SERIAL_DRIVER_HPP_
