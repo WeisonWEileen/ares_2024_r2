@@ -178,13 +178,34 @@ namespace rc_serial_driver
         try
         {
             SendPacket packet;
-            packet.chasis_motor01 = 100;
-            packet.chasis_motor02 = 100;
-            packet.chasis_motor03 = 100;
-            packet.chasis_motor04 = 100;
+            packet.chasis_motor01 = 255;
+            packet.chasis_motor02 = 255;
+            packet.chasis_motor03 = 255;
+            packet.chasis_motor04 = 255;
+
             crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
 
             std::vector<uint8_t> data = toVector(packet);
+            // 访问发送的数据data的第一个字节
+            // uint8_t first_byte = data[0];
+
+            // // 访问发送的数据data的第二个字节
+            // uint8_t second_byte = data[1];
+
+            // // 访问发送的数据data的第三个字节
+            // uint8_t third_byte = data[2];
+
+            // // 访问发送的数据data的第四个字节
+            // uint8_t fourth_byte = data[3];
+
+            // // 访问发送的数据data的第五个字节
+            // uint8_t fifth_byte = data[4];
+
+            // RCLCPP_INFO(this->get_logger(), "First byte: %hhu", first_byte);
+            // RCLCPP_INFO(this->get_logger(), "Second byte: %u", second_byte);
+            // RCLCPP_INFO(this->get_logger(), "Third byte: %u", third_byte);
+            // RCLCPP_INFO(this->get_logger(), "Fourth byte: %u", fourth_byte);
+            // RCLCPP_INFO(this->get_logger(), "Fifth byte: %u", fifth_byte);
 
             serial_driver_->port()->send(data);
 

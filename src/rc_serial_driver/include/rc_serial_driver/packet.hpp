@@ -17,6 +17,8 @@ namespace rc_serial_driver
         uint8_t chasis_motor02;
         uint8_t chasis_motor03;
         uint8_t chasis_motor04;
+        uint16_t checksum = 0; // This is for the CRC checksum. Remember to sizeof(SendPacket) represent the real length of the data
+
     } __attribute__((packed));
 
     struct ReceivePacket
@@ -34,21 +36,21 @@ namespace rc_serial_driver
         uint16_t checksum = 0;
     } __attribute__((packed));
 
-inline ReceivePacket fromVector(const std::vector<uint8_t> &data)
-{
-    ReceivePacket packet;
-    std::copy(data.begin(), data.end(), reinterpret_cast<uint8_t *>(&packet));
-    return packet;
-}
+    inline ReceivePacket fromVector(const std::vector<uint8_t> &data)
+    {
+        ReceivePacket packet;
+        std::copy(data.begin(), data.end(), reinterpret_cast<uint8_t *>(&packet));
+        return packet;
+    }
 
-inline std::vector<uint8_t> toVector(const SendPacket &data)
-{
-    std::vector<uint8_t> packet(sizeof(SendPacket));
-    std::copy(
-        reinterpret_cast<const uint8_t *>(&data),
-        reinterpret_cast<const uint8_t *>(&data) + sizeof(SendPacket), packet.begin());
-    return packet;
-}
+    inline std::vector<uint8_t> toVector(const SendPacket &data)
+    {
+        std::vector<uint8_t> packet(sizeof(SendPacket));
+        std::copy(
+            reinterpret_cast<const uint8_t *>(&data),
+            reinterpret_cast<const uint8_t *>(&data) + sizeof(SendPacket), packet.begin());
+        return packet;
+    }
 
 }
 
