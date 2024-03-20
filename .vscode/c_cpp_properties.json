@@ -3,7 +3,8 @@
     {
       "name": "linux-gcc-x64",
       "includePath": [
-        "${workspaceFolder}/**"
+        "${workspaceFolder}/**",
+        "/home/weison/Desktop/rc_opencv/src/armor_detector/include/armor_detector"
       ],
       "compilerPath": "/usr/bin/gcc",
       "cStandard": "${default}",

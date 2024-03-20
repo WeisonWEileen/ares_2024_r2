@@ -16,6 +16,11 @@ flowchart TB;
         8[测距方法？（赋予地上球距离属性）]-->7
     end
 
+    subgraph ros接口
+        6-->88[detector_node]
+        subscribe
+    end
+
     subgraph locomotion模块
         7--启动(到框前)-->10[底盘]
         9--放哪个框-->10
