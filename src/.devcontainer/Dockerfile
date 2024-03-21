@@ -64,7 +64,9 @@ RUN mkdir -p ~/opencv && \
     ldconfig
 
 RUN apt-get update && \
-    apt-get install -y ros-${ROS_DISTRO}-serial-driver
+    apt-get install -y ros-${ROS_DISTRO}-serial-driver && \
+    usbutils
+
 
 ARG USERNAME=USERNAME
 ARG USER_UID=1000
@@ -78,14 +80,16 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && apt-get update \
     && apt-get install -y sudo \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME
+    && chmod 0440 /etc/sudoers.d/$USERNAME \
+    && sudo usermod -aG dialout $USER      # let the user be able to deal with /dev/ttyACM0
 
 # FROM basic as additional
 
 
 
 USER $USERNAME
-RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash"  >> ~/.bashrc 
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash"  >> ~/.bashrc && \
+    echo "source /home/ws/install/setup.bash" >> ~/.bashrc
 
 
 

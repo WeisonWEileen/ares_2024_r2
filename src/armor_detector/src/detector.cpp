@@ -1,5 +1,5 @@
 // #include "armor_detector/detector.hpp"
-#include "../include/armor_detector/detector.hpp"
+#include "armor_detector/detector.hpp"
 #include <opencv2/opencv.hpp>
 
 namespace rc_auto_aim{
@@ -7,7 +7,7 @@ namespace rc_auto_aim{
         : thres(params) {}
 
     cv::Mat preprocessingImage(const cv::Mat &input){
-
+        return input;
     }
 
     cv::Mat b_r_max(const cv::Mat &frame){
