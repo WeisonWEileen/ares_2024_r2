@@ -26,12 +26,19 @@ namespace rc_auto_aim{
         };
 
         Detector(const threshold_params &params);
+        
 
+        //@brief preprocess image
         cv::Mat preprocessingImage(const cv::Mat & input);
 
         // @brief select those pixel which blue/red value are biggest
         // @param: frame 
         cv::Mat b_r_max(const cv::Mat &frame);
+
+        // @brief to r or b find ball
+        std::vector<std::vector<cv::Point>> find_ball(const cv::Mat &frame);
+
+        void draw_circle(cv::Mat &frame, const std::vector<std::vector<cv::Point>> &contours);
 
         threshold_params thres;
 };

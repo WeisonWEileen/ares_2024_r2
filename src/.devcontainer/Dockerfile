@@ -64,8 +64,7 @@ RUN mkdir -p ~/opencv && \
     ldconfig
 
 RUN apt-get update && \
-    apt-get install -y ros-${ROS_DISTRO}-serial-driver && \
-    usbutils
+    apt-get install -y ros-${ROS_DISTRO}-serial-driver 
 
 
 ARG USERNAME=USERNAME
@@ -80,16 +79,18 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && apt-get update \
     && apt-get install -y sudo \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME \
-    && sudo usermod -aG dialout $USER      # let the user be able to deal with /dev/ttyACM0
-
-# FROM basic as additional
-
-
+    && chmod 0440 /etc/sudoers.d/$USERNAME 
+    # && sudo usermod -aG dialout $USER         
+    # let the user be able to deal with /dev/ttyACM0
 
 USER $USERNAME
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash"  >> ~/.bashrc && \
-    echo "source /home/ws/install/setup.bash" >> ~/.bashrc
+    echo "source /home/ws/install/setup.bash" >> ~/.bashrc 
+
+#为opencv 配置pkg-config，但是profile.d文件夹中默认是没有pkgconfig.sh文件
+RUN touch /etc/profile.d/pkgconfig.sh && \
+    echo "export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig/:$PKG_CONFIG_PATH" >> /etc/profile.d/pkgconfig.sh
+
 
 
 
