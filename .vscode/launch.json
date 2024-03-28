@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/weison/Desktop/rc_opencv/src/rc_serial_driver/src",
-      "program": "/home/weison/Desktop/rc_opencv/src/rc_serial_driver/src/build/Debug/outDebug",
+      "cwd": "/home/weison/Desktop/rc_opencv/src/armor_detector/src",
+      "program": "/home/weison/Desktop/rc_opencv/src/armor_detector/src/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
