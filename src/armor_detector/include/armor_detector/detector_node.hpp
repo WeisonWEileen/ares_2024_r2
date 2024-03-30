@@ -56,6 +56,8 @@ class ArmorDetectorNode : public rclcpp::Node
         std::shared_ptr<rclcpp::ParameterCallbackHandle> debug_cb_handle_;
         image_transport::Publisher br_max_img_pub_;
         image_transport::Publisher binary_img_pub_;
+        image_transport::Publisher result_pub_;
+
 };
 }
 

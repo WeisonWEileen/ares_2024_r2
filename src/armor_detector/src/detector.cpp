@@ -18,10 +18,10 @@ namespace rc_auto_aim{
 
         cv::Mat mask;
         cv::inRange(
-        hsv_image,
-        cv::Scalar(thres.h_up,thres.s_up,thres.v_up),
-        cv::Scalar(thres.h_down,thres.s_down,thres.v_down),
-        mask);
+            hsv_image,
+            cv::Scalar(thres.h_down, thres.s_down, thres.v_down),
+            cv::Scalar(thres.h_up, thres.s_up, thres.v_up),
+            mask);
 
         cv::dilate(mask, mask, cv::Mat(), cv::Point(-1, -1), 5);
         cv::erode(mask, mask, cv::Mat(), cv::Point(-1, -1), 5);
@@ -47,7 +47,7 @@ namespace rc_auto_aim{
     // }
 
     // 用于过滤掉非 B/R通道最大的像素点
-    cv::Mat b_r_max(const cv::Mat &frame)
+    cv::Mat Detector::b_r_max(const cv::Mat &frame)
     {
         // 拷贝一份，用于保留debug信息，后续考虑直接用
         cv::Mat img = frame.clone();
@@ -68,7 +68,7 @@ namespace rc_auto_aim{
             {
                 uchar *curretPtr = imgPtr + col * 3;
                 // 如果蓝色通道比其它通道都大，那么就保留，否则都置0
-                if ((*curretPtr - *(curretPtr + 1) > 40) & (*curretPtr - *(curretPtr + 2) > 40))
+                if ((*curretPtr - *(curretPtr + 1) > 10) & (*curretPtr - *(curretPtr + 2) > 10))
                     continue;
                 else
                 {

@@ -178,21 +178,26 @@ namespace rc_serial_driver
         try
         {
             SendPacket packet;
-            if (msg->center_pixel_point.x > 210)
+            if (msg->center_pixel_point.x - 320  > 80 )
             {
                 packet.chasis_motor01 = 1000.0f;
                 packet.chasis_motor02 = 1000.0f;
                 packet.chasis_motor03 = 1000.0f;
                 packet.chasis_motor04 = 1000.0f;
             }
-            else 
+            else if(msg->center_pixel_point.x - 320 < 80)
             {
                 packet.chasis_motor01 = -1000.0f;
                 packet.chasis_motor02 = -1000.0f;
                 packet.chasis_motor03 = -1000.0f;
                 packet.chasis_motor04 = -1000.0f;
             }
-            
+            else{
+                packet.chasis_motor01 = 0.0f;
+                packet.chasis_motor02 = 0.0f;
+                packet.chasis_motor03 = 0.0f;
+                packet.chasis_motor04 = 0.0f;
+            }
 
             crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
 

@@ -83,7 +83,8 @@ std::unique_ptr<Detector> ArmorDetectorNode::initDetector()
 
 ball_target ArmorDetectorNode::detectArmors(const sensor_msgs::msg::Image::ConstSharedPtr &img_msg)
 {
-    auto img = cv_bridge::toCvShare(img_msg, "rgb8")->image;
+    //注意我现在这里使用的是bgr8的格式
+    auto img = cv_bridge::toCvShare(img_msg, "bgr8")->image;
 
     cv::Mat b_r_img;
     b_r_img = detector_->b_r_max(img);
@@ -115,12 +116,12 @@ ball_target ArmorDetectorNode::detectArmors(const sensor_msgs::msg::Image::Const
     RCLCPP_DEBUG_STREAM(this->get_logger(), "Latency: " << latency << "ms");
     if (debug_)
     {
-
         br_max_img_pub_.publish(
-            cv_bridge::CvImage(img_msg->header, "mono8", b_r_img).toImageMsg());
-
+            cv_bridge::CvImage(img_msg->header, "bgr8", b_r_img).toImageMsg());
         binary_img_pub_.publish(
             cv_bridge::CvImage(img_msg->header, "mono8",binary_img).toImageMsg());
+        result_pub_.publish(
+            cv_bridge::CvImage(img_msg->header, "bgr8", img).toImageMsg());
     }
     return ball;
 }
@@ -128,8 +129,8 @@ ball_target ArmorDetectorNode::detectArmors(const sensor_msgs::msg::Image::Const
 void ArmorDetectorNode::createDebugPublishers()
 {
     br_max_img_pub_ = image_transport::create_publisher(this, "/detector/br_max_img");
-
     binary_img_pub_ = image_transport::create_publisher(this, "/detector/binary_img");
+    result_pub_ = image_transport::create_publisher(this, "/detector/result");
 }
 
 void ArmorDetectorNode::destroyDebugPublishers()
