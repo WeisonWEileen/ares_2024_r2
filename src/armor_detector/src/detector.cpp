@@ -2,12 +2,14 @@
 #include "armor_detector/detector.hpp"
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include <omp.h>
 
 namespace rc_auto_aim{
     Detector ::Detector(const threshold_params &params)
         : thres(params) {}
 
-    cv::Mat Detector::preprocessingImage(const cv::Mat & rgb_image){
+    cv::Mat Detector::preprocessImage(const cv::Mat &rgb_image)
+    {
         cv::Mat blurred;
         cv::GaussianBlur(rgb_image,blurred,cv::Size(11,11),0);
         
@@ -27,21 +29,56 @@ namespace rc_auto_aim{
         return mask;
     }
 
-    cv::Mat Detector::b_r_max(const cv::Mat &frame){
-        // 计算每个像素BGR值中最大的值
-        cv::Mat bgr_planes[3];
-        cv::split(frame, bgr_planes);
-        cv::Mat max_blue = cv::max(cv::max(bgr_planes[0], bgr_planes[1]), bgr_planes[2]);
+    // cv::Mat Detector::b_r_max(const cv::Mat &frame){
+    //     // 计算每个像素BGR值中最大的值
+    //     cv::Mat bgr_planes[3];
+    //     cv::split(frame, bgr_planes);
+    //     cv::Mat max_blue = cv::max(cv::max(bgr_planes[0], bgr_planes[1]), bgr_planes[2]);
 
-        // 创建蓝色掩码，只有蓝色值是最大值的像素才被保留
-        cv::Mat blue_mask = (bgr_planes[0] == max_blue) & (bgr_planes[1] == max_blue) & (bgr_planes[2] == max_blue);
-        blue_mask.convertTo(blue_mask, CV_8U, 255);
+    //     // 创建蓝色掩码，只有蓝色值是最大值的像素才被保留
+    //     cv::Mat blue_mask = (bgr_planes[0] == max_blue) & (bgr_planes[1] == max_blue) & (bgr_planes[2] == max_blue);
+    //     blue_mask.convertTo(blue_mask, CV_8U, 255);
 
-        // 应用掩码到图像
-        cv::Mat masked_image;
-        cv::bitwise_and(frame, frame, masked_image, blue_mask);
+    //     // 应用掩码到图像
+    //     cv::Mat masked_image;
+    //     cv::bitwise_and(frame, frame, masked_image, blue_mask);
 
-        return masked_image;
+    //     return masked_image;
+    // }
+
+    // 用于过滤掉非 B/R通道最大的像素点
+    cv::Mat b_r_max(const cv::Mat &frame)
+    {
+        // 拷贝一份，用于保留debug信息，后续考虑直接用
+        cv::Mat img = frame.clone();
+
+        int w = img.cols;
+        int h = img.rows;
+        uchar *imgPtr = NULL;
+
+        // openmp加速,对for循环进行多核并行计算
+        //  #pragma omp parallel for
+        for (int row = 0; row < h; row++)
+        {
+            imgPtr = img.data + row * img.step;
+    // 注意，image.data与image.ptr<uchar>(0)完全等价;
+    // openmp加速,对for循环进行多核并行计算
+        // #pragma omp parallel for //编译时加上 -fopenmp？先不管了，估计开-o3效果差不多
+            for (int col = 0; col < w; col++)
+            {
+                uchar *curretPtr = imgPtr + col * 3;
+                // 如果蓝色通道比其它通道都大，那么就保留，否则都置0
+                if ((*curretPtr - *(curretPtr + 1) > 40) & (*curretPtr - *(curretPtr + 2) > 40))
+                    continue;
+                else
+                {
+                    *(curretPtr) = 0;
+                    *(curretPtr + 1) = 0;
+                    *(curretPtr + 2) = 0;
+                }
+            }
+        }
+        return img;
     }
 
     std::vector<std::vector<cv::Point>> Detector::find_ball(const cv::Mat &frame){
@@ -50,11 +87,11 @@ namespace rc_auto_aim{
         return contours;
     }
 
-    void Detector::draw_circle(cv::Mat &frame, const std::vector<std::vector<cv::Point>> &cnts){
-
-
-
-        if (!cnts.empty()) {
+    ball_target Detector::draw_circle(cv::Mat &frame, const std::vector<std::vector<cv::Point>> &cnts)
+    {
+        ball_target ball;
+        if (!cnts.empty())
+        {
             // find the largest contour in the mask
             size_t largestContourIndex = 0;
             double maxArea = cv::contourArea(cnts[0]);
@@ -83,33 +120,24 @@ namespace rc_auto_aim{
                     cv::circle(frame, cv::Point(center.x, center.y), static_cast<int>(radius), cv::Scalar(0, 255, 255), 2);
                     cv::circle(frame, cv::Point(center.x, center.y), 5, cv::Scalar(0, 0, 255), -1);
                     std::cout << center << std::endl;
+
+                    //传递目标信息到函数外，供发布者发布
+                    
+                    ball.u = center.x;
+                    ball.v = center.y;
+                    ball.r = radius;
+
+ 
+                    // float[] arr[3];
+                    // arr[0] = center.x;
+                    // arr[1] = center.y;
+                    // arr[2] = radius;
+                    // return target;
                 }
             }
         }
+        return ball;
     }
 
-
-
-
 }
 
-int main()
-{
-    // 读取图像
-    cv::Mat frame = cv::imread("test.jpg");
-    // if (frame.empty())
-    // {
-    //     std::cerr << "Error: Could not read image." << std::endl;
-    //     return -1;
-    // }
-
-    // 调用 B_R 函数
-    cv::Mat result = rc_auto_aim::b_r_max(frame);
-
-    // 显示结果图像
-    cv::imshow("Result", result);
-    cv::waitKey(0);
-    cv::destroyAllWindows();
-
-    return 0;
-}

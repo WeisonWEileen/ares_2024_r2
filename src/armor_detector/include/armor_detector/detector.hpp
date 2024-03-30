@@ -13,6 +13,13 @@
 // #include 
 
 namespace rc_auto_aim{
+
+  struct ball_target
+  {
+    float u;
+    float v;
+    float r;
+  };
   class Detector{
     public:
         struct threshold_params
@@ -29,7 +36,7 @@ namespace rc_auto_aim{
         
 
         //@brief preprocess image
-        cv::Mat preprocessingImage(const cv::Mat & input);
+        cv::Mat preprocessImage(const cv::Mat & input);
 
         // @brief select those pixel which blue/red value are biggest
         // @param: frame 
@@ -38,10 +45,12 @@ namespace rc_auto_aim{
         // @brief to r or b find ball
         std::vector<std::vector<cv::Point>> find_ball(const cv::Mat &frame);
 
-        void draw_circle(cv::Mat &frame, const std::vector<std::vector<cv::Point>> &contours);
+        ball_target draw_circle(cv::Mat &frame, const std::vector<std::vector<cv::Point>> &contours);
 
         threshold_params thres;
 };
+
+
 }
 
 #endif

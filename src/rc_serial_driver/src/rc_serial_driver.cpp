@@ -75,7 +75,7 @@ namespace rc_serial_driver
 
         // Create Subscription
         target_sub_ = this->create_subscription<auto_aim_interfaces::msg::Target>(
-            "/tracker/target", rclcpp::SensorDataQoS(),
+            "/detector/balls", rclcpp::SensorDataQoS(),
             std::bind(&RCSerialDriver::sendData, this, std::placeholders::_1));
     }
 
@@ -178,10 +178,21 @@ namespace rc_serial_driver
         try
         {
             SendPacket packet;
-            packet.chasis_motor01 = 255;
-            packet.chasis_motor02 = 255;
-            packet.chasis_motor03 = 255;
-            packet.chasis_motor04 = 255;
+            if (msg->center_pixel_point.x > 210)
+            {
+                packet.chasis_motor01 = 1000.0f;
+                packet.chasis_motor02 = 1000.0f;
+                packet.chasis_motor03 = 1000.0f;
+                packet.chasis_motor04 = 1000.0f;
+            }
+            else 
+            {
+                packet.chasis_motor01 = -1000.0f;
+                packet.chasis_motor02 = -1000.0f;
+                packet.chasis_motor03 = -1000.0f;
+                packet.chasis_motor04 = -1000.0f;
+            }
+            
 
             crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
 

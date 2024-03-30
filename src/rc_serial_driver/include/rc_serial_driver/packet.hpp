@@ -13,10 +13,10 @@ namespace rc_serial_driver
     struct SendPacket
     {
         uint8_t header = 0x5A;
-        uint8_t chasis_motor01;
-        uint8_t chasis_motor02;
-        uint8_t chasis_motor03;
-        uint8_t chasis_motor04;
+        float chasis_motor01;
+        float chasis_motor02;
+        float chasis_motor03;
+        float chasis_motor04;
         uint16_t checksum = 0; // This is for the CRC checksum. Remember to sizeof(SendPacket) represent the real length of the data
 
     } __attribute__((packed));

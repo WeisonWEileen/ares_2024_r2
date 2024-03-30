@@ -64,7 +64,12 @@ RUN mkdir -p ~/opencv && \
     ldconfig
 
 RUN apt-get update && \
-    apt-get install -y ros-${ROS_DISTRO}-serial-driver 
+    apt-get install -y ros-${ROS_DISTRO}-serial-driver \
+    ros-${ROS_DISTRO}-v4l2-camera \
+    ros-${ROS_DISTRO}-rqt \
+    ros-${ROS_DISTRO}-rqt-common-plugins \
+    ros-${ROS_DISTRO}-rqt-image-view
+
 
 
 ARG USERNAME=USERNAME
@@ -87,9 +92,9 @@ USER $USERNAME
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash"  >> ~/.bashrc && \
     echo "source /home/ws/install/setup.bash" >> ~/.bashrc 
 
-#为opencv 配置pkg-config，但是profile.d文件夹中默认是没有pkgconfig.sh文件
-RUN touch /etc/profile.d/pkgconfig.sh && \
-    echo "export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig/:$PKG_CONFIG_PATH" >> /etc/profile.d/pkgconfig.sh
+#为opencv 配置pkg-config，但是profile.d文件夹中默认是没有pkgconfig.sh文件 目前是失败的
+# RUN touch /etc/profile.d/pkgconfig.sh && \
+#     echo "export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig/:$PKG_CONFIG_PATH" >> /etc/profile.d/pkgconfig.sh
 
 
 
