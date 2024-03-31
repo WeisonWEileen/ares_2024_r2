@@ -185,7 +185,7 @@ namespace rc_serial_driver
                 packet.chasis_motor03 = 1000.0f;
                 packet.chasis_motor04 = 1000.0f;
             }
-            else if(msg->center_pixel_point.x - 320 < 80)
+            else if(msg->center_pixel_point.x - 320 < -80)
             {
                 packet.chasis_motor01 = -1000.0f;
                 packet.chasis_motor02 = -1000.0f;
