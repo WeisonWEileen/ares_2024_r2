@@ -1,6 +1,6 @@
 ros2 launch rc_serial_driver serial_driver.launch.py
 ros2 launch armor_detector detector.launch.py
-ros2 run v4l2_camera v4l2_camera_node --ros-args -p video_device:=/dev/video3
+ros2 run v4l2_camera v4l2_camera_node --ros-args -p video_device:=/dev/cam0
 ros2 run rqt_image_view rqt_image_view
 
 #查看摄像头信息

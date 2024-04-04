@@ -65,10 +65,12 @@ RUN mkdir -p ~/opencv && \
 
 RUN apt-get update && \
     apt-get install -y ros-${ROS_DISTRO}-serial-driver \
-    ros-${ROS_DISTRO}-v4l2-camera \
+    # ros-${ROS_DISTRO}-v4l2-camera \ #git clone and colcon build is better 
     ros-${ROS_DISTRO}-rqt \
     ros-${ROS_DISTRO}-rqt-common-plugins \
-    ros-${ROS_DISTRO}-rqt-image-view
+    ros-${ROS_DISTRO}-rqt-image-view 
+    ros-${ROS_DISTRO}-camera-calibration 
+    
 
 
 
