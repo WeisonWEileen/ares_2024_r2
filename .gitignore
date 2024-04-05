@@ -3,3 +3,6 @@ install
 log
 build
 src/CV_test
+
+#pt model is too big 
+*.pt    

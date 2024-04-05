@@ -12,6 +12,9 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+import os
+from ament_index_python.packages import get_package_share_directory
+
 
 
 from launch import LaunchDescription
@@ -25,10 +28,16 @@ def generate_launch_description():
     #
     # ARGS
     #
+    bringup_dir = get_package_share_directory("yolov8_bringup")
+
+    # path for the model and the rviz configuration
+    model_path = os.path.join(bringup_dir, "model", "2024_1000_pict.pt")
+    rviz_cfg_path = os.path.join(bringup_dir, "config", "yolov8.rviz")
+
     model = LaunchConfiguration("model")
     model_cmd = DeclareLaunchArgument(
         "model",
-        default_value="/home/ws/src/CV_test/2024_400_pict.pt",
+        default_value=model_path,
         description="Model name or path")
 
     tracker = LaunchConfiguration("tracker")
@@ -74,6 +83,7 @@ def generate_launch_description():
         "namespace",
         default_value="yolo",
         description="Namespace for the nodes")
+    
 
     #
     # NODES
@@ -117,6 +127,16 @@ def generate_launch_description():
         ]
     )
 
+    #debug imformation visualization
+
+    rviz_node_cmd = Node(
+        package="rviz2",
+        namespace='',
+        executable="rviz2",
+        arguments=['-d', rviz_cfg_path]
+
+    )
+
     ld = LaunchDescription()
 
     ld.add_action(model_cmd)
@@ -131,5 +151,6 @@ def generate_launch_description():
     ld.add_action(detector_node_cmd)
     ld.add_action(tracking_node_cmd)
     ld.add_action(debug_node_cmd)
+    ld.add_action(rviz_node_cmd)
 
     return ld
