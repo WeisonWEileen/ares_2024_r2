@@ -43,7 +43,10 @@ RUN apt-get update && \
     webp \
     zlib1g-dev \
     gdb \
-    v4l-utils 
+    v4l-utils \
+    gnome-terminal \
+    dbus-x11 
+    #gnome-terminal and dbus-x11 is for easy terminal logging visuailization
 
 #install openCV
 RUN mkdir -p ~/opencv && \
@@ -84,7 +87,7 @@ RUN pip install opencv-python==4.8.1.78 \
 
 # install all dependencies of the workspace
 # RUN rosdep install --from-paths src --ignore-src -r -y 
-# it seems that there is no need because postCreateCommand had do the same thing
+# there is no need because postCreateCommand.json had do the same thing
 
 
 
