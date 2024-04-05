@@ -28,7 +28,7 @@ def generate_launch_description():
     model = LaunchConfiguration("model")
     model_cmd = DeclareLaunchArgument(
         "model",
-        default_value="yolov8m.pt",
+        default_value="/home/ws/src/CV_test/2024_400_pict.pt",
         description="Model name or path")
 
     tracker = LaunchConfiguration("tracker")
@@ -58,8 +58,8 @@ def generate_launch_description():
     input_image_topic = LaunchConfiguration("input_image_topic")
     input_image_topic_cmd = DeclareLaunchArgument(
         "input_image_topic",
-        default_value="/camera/rgb/image_raw",
-        # default_value="/image_raw",
+        # default_value="/camera/rgb/image_raw",
+        default_value="/image_raw",
         description="Name of the input image topic")
 
     image_reliability = LaunchConfiguration("image_reliability")

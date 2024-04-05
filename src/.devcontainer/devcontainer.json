@@ -23,7 +23,9 @@
                 "eamodio.gitlens",                       
                 "ms-iot.vscode-ros",                    //to debug ros node
                 "batisteo.vscode-django",
-                "github.copilot"                         //to help you code
+                "github.copilot",               //to help you code
+                "ms-python.python",
+                "ms-azuretools.vscode-docker"    //docker support 
             ]
         }
     },
