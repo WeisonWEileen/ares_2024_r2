@@ -1,3 +1,4 @@
+//Copyright 2024 , weison_pan
 {
     "name": "R2_open_cv_ros2",
     "privileged": true,
@@ -16,10 +17,13 @@
             "extensions":[
                 "ms-vscode.cpptools",
                 "ms-vscode.cpptools-themes",
-                "twxs.cmake",
-                "donjayamanne.python-extension-pack",
-                "eamodio.gitlens",
-                "ms-iot.vscode-ros"
+                "twxs.cmake",                            //necessary for cmake for vscode               
+                "ms-vscode.cmake-tools",                 //necessary for cmake for vscode
+                "donjayamanne.python-extension-pack",    //make code look beartiful
+                "eamodio.gitlens",                       
+                "ms-iot.vscode-ros",                    //to debug ros node
+                "batisteo.vscode-django",
+                "github.copilot"                         //to help you code
             ]
         }
     },
@@ -30,7 +34,8 @@
     },
     "runArgs": [
         "--net=host",
-        "-e", "DISPLAY=${env:DISPLAY}"
+        "-e", "DISPLAY=${env:DISPLAY}",
+        "--gpus", "all"
     ],
     "mounts": [
        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",

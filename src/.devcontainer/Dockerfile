@@ -68,9 +68,23 @@ RUN apt-get update && \
     # ros-${ROS_DISTRO}-v4l2-camera \ #git clone and colcon build is better 
     ros-${ROS_DISTRO}-rqt \
     ros-${ROS_DISTRO}-rqt-common-plugins \
-    ros-${ROS_DISTRO}-rqt-image-view 
-    ros-${ROS_DISTRO}-camera-calibration 
+    ros-${ROS_DISTRO}-rqt-image-view \
+    ros-${ROS_DISTRO}-camera-calibration \
+    ros-${ROS_DISTRO}-rviz2 \
+    python3-rosdep
     
+#install for yolov8 object detection and tracking (installed in '/home/jetson/.local/bin' )
+RUN pip install opencv-python==4.8.1.78  && \
+    typing-extensions>=4.4.0 && \
+    ultralytics==8.1.29
+
+#upgrade package
+RUN pip install --upgrade scipy
+
+# install all dependencies of the workspace
+# RUN rosdep install --from-paths src --ignore-src -r -y 
+# it seems that there is no need because postCreateCommand had do the same thing
+
 
 
 
@@ -90,9 +104,11 @@ RUN groupadd --gid $USER_GID $USERNAME \
     # && sudo usermod -aG dialout $USER         
     # let the user be able to deal with /dev/ttyACM0
 
+## change bashrc and ADD path 
 USER $USERNAME
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash"  >> ~/.bashrc && \
     echo "source /home/ws/install/setup.bash" >> ~/.bashrc 
+    echo "export PATH=${PATH}:/home/jetson/.local/bin" >> ~/.bashrc
 
 #为opencv 配置pkg-config，但是profile.d文件夹中默认是没有pkgconfig.sh文件 目前是失败的
 # RUN touch /etc/profile.d/pkgconfig.sh && \
