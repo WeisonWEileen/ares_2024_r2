@@ -110,7 +110,8 @@ class Yolov8Node(Node):
             hypothesis = {
                 "class_id": int(box_data.cls),
                 "class_name": self.yolo.names[int(box_data.cls)],
-                "score": float(box_data.conf)
+                "score": float(box_data.conf),
+                # "track_id": int(box_data.track_id)
             }
             hypothesis_list.append(hypothesis)
 
@@ -225,7 +226,7 @@ class Yolov8Node(Node):
                     aux_msg.class_id = hypothesis[i]["class_id"]
                     aux_msg.class_name = hypothesis[i]["class_name"]
                     aux_msg.score = hypothesis[i]["score"]
-
+                    # aux_msg.id = hypothesis[i]["track_id"]
                     aux_msg.bbox = boxes[i]
 
                 if results.masks:

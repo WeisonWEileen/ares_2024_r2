@@ -23,6 +23,7 @@
   <depend>tf2_ros</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>auto_aim_interfaces</depend>
+  <depend>yolov8_msgs</depend>
   <depend>std_srvs</depend>
 
   <test_depend>ament_lint_auto</test_depend>

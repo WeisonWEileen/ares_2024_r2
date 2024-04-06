@@ -22,6 +22,9 @@
 #include <vector>
 
 #include "auto_aim_interfaces/msg/target.hpp"
+#include "yolov8_msgs/msg/detection_array.hpp"
+
+
 
 namespace rc_serial_driver
 {
@@ -37,7 +40,7 @@ namespace rc_serial_driver
 
         void receiveData();
 
-        void sendData(auto_aim_interfaces::msg::Target::SharedPtr msg);
+        void sendData(yolov8_msgs::msg::DetectionArray::SharedPtr msg);
 
         void reopenPort();
 
@@ -68,7 +71,7 @@ namespace rc_serial_driver
         double timestamp_offset_ = 0;
         std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
-        rclcpp::Subscription<auto_aim_interfaces::msg::Target>::SharedPtr target_sub_;
+        rclcpp::Subscription<yolov8_msgs::msg::DetectionArray>::SharedPtr target_sub_;
 
         // For debug usage
         rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr latency_pub_;
