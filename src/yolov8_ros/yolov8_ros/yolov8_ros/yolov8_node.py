@@ -203,7 +203,7 @@ class Yolov8Node(Node):
                 conf=self.threshold,
                 device=self.device
             )
-            results: Results = results[0].cpu()
+            results: Results = results[0].cpu() #The cpu() method is used to ensure that the tensor is moved to the CPU before converting it to a numpy array with numpy().
 
             if results.boxes:
                 hypothesis = self.parse_hypothesis(results)

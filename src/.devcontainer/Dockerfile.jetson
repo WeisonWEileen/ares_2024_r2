@@ -1,0 +1,27 @@
+FROM dustynv/ros:humble-ros-base-deepstream-l4t-r35.1.0
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# add PATH
+ENV PATH=$PATH:/usr/src/tensorrt/bin
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 42D5A192B819C5DA && \
+    apt-get update && \
+    apt-get install -y \
+    doxygen \
+    libfmt-dev \
+    librange-v3-dev \
+    python3-pip \
+    python3-jinja2 \
+    python3-typeguard
+RUN mkdir -p /dependencies/src && \
+    cd /dependencies/src && \
+    git clone https://github.com/PickNikRobotics/RSL.git && \
+    git clone https://github.com/PickNikRobotics/cpp_polyfills.git && \
+    git clone https://github.com/ros-perception/vision_opencv.git  -b humble && \
+    git clone https://github.com/PickNikRobotics/generate_parameter_library.git && \
+    cd /dependencies/ && \
+    . /opt/ros/humble/install/setup.sh && \
+    colcon build
+
+COPY /usr/include/aarch64-linux-gnu/ /usr/include/aarch64-linux-gnu/

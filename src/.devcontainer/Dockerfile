@@ -1,5 +1,5 @@
 ARG ROS_DISTRO="humble"
-FROM ros:${ROS_DISTRO} 
+FROM arm64v8/ros:${ROS_DISTRO} 
 # as basic
 
 LABEL author = "weison_pan"
@@ -49,6 +49,8 @@ RUN apt-get update && \
     #gnome-terminal and dbus-x11 is for easy terminal logging visuailization
 
 #install openCV
+#也许可以加上-DWITH_CUDA=ON 
+#
 RUN mkdir -p ~/opencv && \
     cd ~/opencv && \
     wget -O opencv.zip https://github.com/opencv/opencv/archive/4.x.zip && \

@@ -215,11 +215,11 @@ namespace rc_serial_driver
                     }
 
                     //如果是蓝球，那么求出最大的半径对应的目标点，目前半径是直接取x值,因为x值在取球过程中快消失的时候比较稳定
-                    if (detection.bbox.size.x > max_radius)
-                    {
+                    // if (detection.bbox.size.x > max_radius)
+                    // {
                         // max_radius = detection.size.x;
-                        target_point = detection.bbox.center.position.x;
-                    }
+                    target_point = detection.bbox.center.position.x;
+                    // }
 
                     exist_result = 1;
                 }
@@ -227,31 +227,36 @@ namespace rc_serial_driver
                 // 如果检测到了R/B
                 if (exist_result)
                 {
-                    //对应球心偏左
-                    if (target_point - 320 > 80)
+                    //像素中心点是320，对应球心偏左
+                    if (target_point  > 400)
                     {
-                        packet.chasis_motor01 = 1000.0f;
-                        packet.chasis_motor02 = 1000.0f;
-                        packet.chasis_motor03 = 1000.0f;
-                        packet.chasis_motor04 = 1000.0f;
+                        packet.chasis_motor01 = -700.0f;
+                        packet.chasis_motor02 = -700.0f;
+                        packet.chasis_motor03 = -700.0f;
+                        packet.chasis_motor04 = -700.0f;
                     }
                     //对应球心偏右
-                    else if (target_point - 320 < -80)
+                    else if (target_point < 240)
                     {
-                        packet.chasis_motor01 = -1000.0f;
-                        packet.chasis_motor02 = -1000.0f;
-                        packet.chasis_motor03 = -1000.0f;
-                        packet.chasis_motor04 = -1000.0f;
+                        packet.chasis_motor01 = 700.0f;
+                        packet.chasis_motor02 = 700.0f;
+                        packet.chasis_motor03 = 700.0f;
+                        packet.chasis_motor04 = 700.0f;
                     }
                     //对应球心在中间，直接向前开
-                    else
+                    else 
                     {
-                        packet.chasis_motor01 = -1000.0f;
-                        packet.chasis_motor02 = -1000.0f;
-                        packet.chasis_motor03 =  1000.0f;
-                        packet.chasis_motor04 =  1000.0f;
+                        // packet.chasis_motor01 =  700.0f;
+                        // packet.chasis_motor02 = -700.0f;
+                        // packet.chasis_motor03 =  700.0f;
+                        // packet.chasis_motor04 = -700.0f;
+                        packet.chasis_motor01 = -700.0f;
+                        packet.chasis_motor02 = 700.0f;
+                        packet.chasis_motor03 = 700.0f;
+                        packet.chasis_motor04 = -700.0f;
                     }
                 }
+            
                 //对应只有紫球的情况
                 else
                 {

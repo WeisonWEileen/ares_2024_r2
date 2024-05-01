@@ -3,6 +3,7 @@ install
 log
 build
 src/CV_test
+.vscode
 
 #pt model is too big 
 *.pt    

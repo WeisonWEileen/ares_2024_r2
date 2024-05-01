@@ -4,6 +4,7 @@
 # # ros2 run v4l2_camera v4l2_camera_node --ros-args -p video_device:=/dev/cam0
 # ros2 run rqt_image_view rqt_image_view
 # ros2 launch yolov8_bringup yolov8.launch.py
+sudo chmod 777 /dev/ttyACM0
 
 
 
@@ -21,6 +22,7 @@ cmds=(
     "ros2 run v4l2_camera v4l2_camera_node"
 	"ros2 launch yolov8_bringup yolov8.launch.py"
     "ros2 topic echo /yolo/tracking"
+    "ros2 launch rc_serial_driver serial_driver.launch.py"
 )
 
 for cmd in "${cmds[@]}"

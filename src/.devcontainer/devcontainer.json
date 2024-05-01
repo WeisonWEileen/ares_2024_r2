@@ -44,7 +44,8 @@
         "source=/dev,target=/dev,type=bind,consistency=cached",
         "source=${localWorkspaceFolder}/../cache/humble/build,target=/home/ws/build,type=bind",
         "source=${localWorkspaceFolder}/../cache/humble/install,target=/home/ws/install,type=bind",
-        "source=${localWorkspaceFolder}/../cache/humble/log,target=/home/ws/log,type=bind"
+        "source=${localWorkspaceFolder}/../cache/humble/log,target=/home/ws/log,type=bind",
+        "source=${localWorkspaceFolder}/.vscode,target=/home/ws/.vscode,type=bind"
     ],
     "postCreateCommand": "rosdep update && rosdep install --from-paths src --ignore-src -y && sudo chown -R $(whoami) /home/ws/"
 }
