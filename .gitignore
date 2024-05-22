@@ -4,6 +4,7 @@ log
 build
 src/CV_test
 .vscode
-
+.cache
 #pt model is too big 
 *.pt    
+*.onnx

@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/weison/Desktop/rc_opencv/src/rc_serial_driver/src",
-      "program": "/home/weison/Desktop/rc_opencv/src/rc_serial_driver/src/build/Debug/outDebug",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/install/${input:package_name}/lib/${input:package_name}/${input:package_executable}",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
@@ -19,6 +19,20 @@
           "ignoreFailures": true
         }
       ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "package_name",
+      "type": "promptString",
+      "description": "ros2 package name",
+      "default": "cpp_primer_pubsub"
+    },
+    {
+      "id": "package_executable",
+      "type": "promptString",
+      "description": "ros2 package executable",
+      "default": "talker"
     }
   ]
 }

@@ -15,35 +15,35 @@
 #include <string>
 #include <vector>
 
-#include "auto_aim_interfaces/msg/target.hpp"
-#include "armor_detector/detector.hpp"
+#include "armor_detector/inferencer.h"
+#include "yolov8_msgs/msg/detection.hpp"
 
 namespace rc_auto_aim
 {
-class ArmorDetectorNode : public rclcpp::Node
+class InferencerNode : public rclcpp::Node
 {
     public:
-        ArmorDetectorNode(const rclcpp::NodeOptions &options);
+        InferencerNode(const rclcpp::NodeOptions &options);
     private:
 
         // @brief callback function for image
         void imageCallback(const sensor_msgs::msg::Image::ConstSharedPtr img_msg);
 
-        std::unique_ptr<Detector> initDetector();
-        ball_target detectArmors(const sensor_msgs::msg::Image::ConstSharedPtr &img_msg);
+        std::unique_ptr<Inference> initInferencer();
+
+        void detectBalls(const sensor_msgs::msg::Image::ConstSharedPtr &img_msg);
 
         void createDebugPublishers();
         void destroyDebugPublishers();
-        void publish_target();
+
+        void visualizeBoxes(cv::Mat & frame, const std::vector<Detection> & output, int size);
 
         //those detected_ball publisher
-        auto_aim_interfaces::msg::Target balls_msg_;
-        rclcpp::Publisher<auto_aim_interfaces::msg::Target>::SharedPtr balls_pub_;
 
-        std::unique_ptr<Detector> detector_;
+        std::unique_ptr<Inference> inferencer_;
 
         //declaration of timer 
-        rclcpp::Publisher<auto_aim_interfaces::msg::Target>::SharedPtr publisher_;
+
         rclcpp::TimerBase::SharedPtr timer_;
         size_t count_;
 
@@ -54,9 +54,19 @@ class ArmorDetectorNode : public rclcpp::Node
         bool debug_;
         std::shared_ptr<rclcpp::ParameterEventHandler> debug_param_sub_;
         std::shared_ptr<rclcpp::ParameterCallbackHandle> debug_cb_handle_;
-        image_transport::Publisher br_max_img_pub_;
-        image_transport::Publisher binary_img_pub_;
+
+        //convert dnn&&nmx output to box
+        yolov8_msgs::msg::DetectionArray convert_to_msg(
+          const std::vector<Detection> & detections);
+
         image_transport::Publisher result_pub_;
+        
+        // ball coordinate publisher
+        yolov8_msgs::msg::DetectionArray boxes_msg_;
+        rclcpp::Publisher<yolov8_msgs::msg::DetectionArray>::SharedPtr balls_pub_;
+
+        //to store the output for each frame
+        std::vector<Detection> output;
 
 };
 }

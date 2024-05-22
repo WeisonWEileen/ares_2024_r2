@@ -4,12 +4,14 @@
       "name": "linux-gcc-x64",
       "includePath": [
         "${workspaceFolder}/**",
-        "/home/weison/Desktop/rc_opencv/src/armor_detector/include/armor_detector"
+        "/opt/ros/humble/include/**",
+        "/usr/include/**"
       ],
-      "compilerPath": "/usr/bin/gcc",
+      "compilerPath": "/usr/bin/g++",
       "cStandard": "${default}",
       "cppStandard": "${default}",
       "intelliSenseMode": "linux-gcc-x64",
+      "compileCommands": "${workspaceFolder}/build/compile_commands.json",
       "compilerArgs": [
         ""
       ]

@@ -4,6 +4,7 @@ project(armor_detector)
 ## Use C++14
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ## By adding -Wall and -Werror, the compiler does not ignore warnings anymore,
 ## enforcing cleaner code.
@@ -11,6 +12,8 @@ add_definitions(-Wall -Werror)
 
 ## Export compile commands for clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+
 
 #######################
 ## Find dependencies ##
@@ -34,7 +37,7 @@ target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
 
 rclcpp_components_register_node(${PROJECT_NAME}
-  PLUGIN rc_auto_aim::ArmorDetectorNode
+  PLUGIN rc_auto_aim::InferencerNode
   EXECUTABLE rc_armor_detector_node
 )
 
@@ -70,4 +73,5 @@ rclcpp_components_register_node(${PROJECT_NAME}
 ament_auto_package(
   INSTALL_TO_SHARE
   launch
+  model
 )
