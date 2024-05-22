@@ -44,9 +44,6 @@ namespace rc_auto_aim
         img_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
             "/image_raw", rclcpp::SensorDataQoS(),
         std::bind(&InferencerNode::imageCallback, this, std::placeholders::_1));
-        //     // 创建发布器,设置Node和默认值
-        //     publisher_ = this->create_publisher<auto_aim_interfaces::msg::Target>("/tracker/target", 10); // 设置发布频率
-        // timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&InferencerNode::publish_target, this));
     }
 
 
@@ -70,12 +67,7 @@ std::unique_ptr<Inference> InferencerNode::initInferencer()
 void  InferencerNode::detectBalls(const sensor_msgs::msg::Image::ConstSharedPtr &img_msg)
 {
     //covert ros img msg to cv::Mat
-    auto img = cv_bridge::toCvCopy(img_msg, "bgr8")->image;
-
-    std::cout << "Image dimensions: " << img.rows << " x " << img.cols << std::endl;
-    std::cout << "Number of channels: " << img.channels() << std::endl;
-    std::cout << "Data type: " << img.type() << std::endl;
-
+    auto img = cv_bridge::toCvShare(img_msg, "bgr8")->image;
     output = inferencer_->runInference(img);//这里面已经改变了img
     visualizeBoxes(img,output,output.size());
     boxes_msg_ = convert_to_msg(output);
