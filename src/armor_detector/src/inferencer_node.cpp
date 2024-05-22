@@ -33,10 +33,9 @@ namespace rc_auto_aim
 
         inferencer_ = initInferencer();
         debug_ = this->declare_parameter("debug", true);
-        if (debug_)
-        {
-            createDebugPublishers();
-        }
+      
+        //发布图像可视化
+        result_pub_ = image_transport::create_publisher(this, "/detector/result");
 
             // 创建球的目标发布者节点
         balls_pub_ = this->create_publisher<yolov8_msgs::msg::DetectionArray>(
@@ -44,7 +43,7 @@ namespace rc_auto_aim
 
         img_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
             "/image_raw", rclcpp::SensorDataQoS(),
-            std::bind(&InferencerNode::imageCallback, this, std::placeholders::_1));
+        std::bind(&InferencerNode::imageCallback, this, std::placeholders::_1));
         //     // 创建发布器,设置Node和默认值
         //     publisher_ = this->create_publisher<auto_aim_interfaces::msg::Target>("/tracker/target", 10); // 设置发布频率
         // timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&InferencerNode::publish_target, this));
@@ -61,23 +60,29 @@ std::unique_ptr<Inference> InferencerNode::initInferencer()
 {
     // @TODO 格式化标签读取，参考陈君实现
     auto pkg_path = ament_index_cpp::get_package_share_directory("armor_detector");
-    auto model_path = pkg_path + "/model/2024_1000_pict_640_480.onnx";
+    auto model_path = pkg_path + "/model/2024_1000_pict_480_640.onnx";
     auto detector =
-      std::make_unique<Inference>(model_path, cv::Size(480, 640), "classes.txt", true, true);
+      std::make_unique<Inference>(model_path, cv::Size(640, 480), "classes.txt", true, true);
     return detector;
 }
 
 //run inference to detect 
 void  InferencerNode::detectBalls(const sensor_msgs::msg::Image::ConstSharedPtr &img_msg)
 {
-    auto img = cv_bridge::toCvShare(img_msg, "rgb8")->image;
+    //covert ros img msg to cv::Mat
+    auto img = cv_bridge::toCvCopy(img_msg, "bgr8")->image;
+
+    std::cout << "Image dimensions: " << img.rows << " x " << img.cols << std::endl;
+    std::cout << "Number of channels: " << img.channels() << std::endl;
+    std::cout << "Data type: " << img.type() << std::endl;
+
     output = inferencer_->runInference(img);//这里面已经改变了img
     visualizeBoxes(img,output,output.size());
     boxes_msg_ = convert_to_msg(output);
     balls_pub_->publish(boxes_msg_);
 
-    sensor_msgs::msg::Image::SharedPtr pub_img;
-    result_pub_.publish(cv_bridge::CvImage(pub_img->header, "brg8", img).toImageMsg());
+    //publish
+    result_pub_.publish(cv_bridge::CvImage(img_msg->header, "rgb8", img).toImageMsg());
 }
 
 void InferencerNode::createDebugPublishers()

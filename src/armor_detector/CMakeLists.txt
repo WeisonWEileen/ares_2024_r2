@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
 project(armor_detector)
 
+# CUDA
+set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda")
+find_package(CUDA 11 REQUIRED)
+set(CMAKE_CUDA_STANDARD 11)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+
 ## Use C++14
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,7 +19,9 @@ add_definitions(-Wall -Werror)
 ## Export compile commands for clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-
+SET(CMAKE_BUILD_TYPE "Debug")
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")
+SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
 #######################
 ## Find dependencies ##

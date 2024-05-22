@@ -14,9 +14,6 @@ Inference::Inference(const std::string &onnxModelPath, const cv::Size &modelInpu
 std::vector<Detection> Inference::runInference(const cv::Mat &input)
 {
     cv::Mat modelInput = input;
-    if (letterBoxForSquare && modelShape.width == modelShape.height)
-        modelInput = formatToSquare(modelInput);
-
     cv::Mat blob;
     //这玩意一张张地，我真的感觉上很慢很慢，有没有加速的方法？
     cv::dnn::blobFromImage(modelInput, blob, 1.0/255.0, modelShape, cv::Scalar(), true, false);
@@ -44,6 +41,10 @@ std::vector<Detection> Inference::runInference(const cv::Mat &input)
     float *data = (float *)outputs[0].data;
 
     float x_factor = modelInput.cols / modelShape.width;
+
+    std::cout << "modelInput.cols: " << modelInput.cols << std::endl;
+    std::cout << "modelShape.width: " << modelShape.width << std::endl;
+    
     float y_factor = modelInput.rows / modelShape.height;
 
     std::vector<int> class_ids;
@@ -80,42 +81,6 @@ std::vector<Detection> Inference::runInference(const cv::Mat &input)
 
             boxes.push_back(cv::Rect(left, top, width, height));
         }
-        // }
-        // else // yolov5
-        // {
-        //     float confidence = data[4];
-
-        //     if (confidence >= modelConfidenceThreshold)
-        //     {
-        //         float *classes_scores = data+5;
-
-        //         cv::Mat scores(1, classes.size(), CV_32FC1, classes_scores);
-        //         cv::Point class_id;
-        //         double max_class_score;
-
-        //         minMaxLoc(scores, 0, &max_class_score, 0, &class_id);
-
-        //         if (max_class_score > modelScoreThreshold)
-        //         {
-        //             confidences.push_back(confidence);
-        //             class_ids.push_back(class_id.x);
-
-        //             float x = data[0];
-        //             float y = data[1];
-        //             float w = data[2];
-        //             float h = data[3];
-
-        //             int left = int((x - 0.5 * w) * x_factor);
-        //             int top = int((y - 0.5 * h) * y_factor);
-
-        //             int width = int(w * x_factor);
-        //             int height = int(h * y_factor);
-
-        //             boxes.push_back(cv::Rect(left, top, width, height));
-        //         }
-        //     }
-        // }
-
         data += dimensions;
     }
 
