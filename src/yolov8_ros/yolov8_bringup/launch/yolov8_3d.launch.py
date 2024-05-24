@@ -28,8 +28,9 @@ def generate_launch_description():
     model = LaunchConfiguration("model")
     model_cmd = DeclareLaunchArgument(
         "model",
-        default_value="yolov8m.pt",
-        description="Model name or path")
+        default_value="/home/weison/Desktop/rc_opencv/src/ultralytics/2024_1000_pict.pt",
+        description="Model name or path",
+    )
 
     tracker = LaunchConfiguration("tracker")
     tracker_cmd = DeclareLaunchArgument(
