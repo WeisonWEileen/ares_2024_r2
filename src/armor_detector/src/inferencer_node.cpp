@@ -80,7 +80,7 @@ void InferencerNode::detectBalls(
   boxes_msg_ = convert_to_msg(output_);
   boxes_msg_.header = rgb_img_msg->header;
   //publish
-  result_pub_.publish(cv_bridge::CvImage(rgb_img_msg->header, "rgb8", rgb_img).toImageMsg()); 
+  result_pub_.publish(cv_bridge::CvImage(rgb_img_msg->header, "bgr8", rgb_img).toImageMsg()); 
   balls_pub_->publish(boxes_msg_);
 }
 

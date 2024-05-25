@@ -70,14 +70,16 @@ void ProjectorNode::project_to_3d_and_publish(
   const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & boxes_msg,
   const sensor_msgs::msg::Image::ConstSharedPtr & dep_img_msg)
 {
-  auto dep_img = cv_bridge::toCvShare(dep_img_msg)->image;
+  auto dep_img = cv_bridge::toCvCopy(dep_img_msg, sensor_msgs::image_encodings::TYPE_16UC1)->image;
+
+//   auto dep_img = cv_bridge::toCvShare(dep_img_msg)->image;
   yolov8_msgs::msg::KeyPoint3DArray keypoint3d_array;
 
   for (auto & box : boxes_msg->detections) {
     yolov8_msgs::msg::KeyPoint3D keypoint3d;
     // 像素球心坐标(u,v)
-    auto u = int(box.bbox.center.position.x + box.bbox.size.x / 2);
-    auto v = int(box.bbox.center.position.y + box.bbox.size.y / 2);
+    auto v = int(box.bbox.center.position.x + box.bbox.size.x / 2);
+    auto u = int(box.bbox.center.position.y + box.bbox.size.y / 2);
 
     auto info_K = this->aligned_depth_caminfo_->k;
     auto px = info_K[2];
@@ -85,9 +87,11 @@ void ProjectorNode::project_to_3d_and_publish(
     auto fx = info_K[0];
     auto fy = info_K[4];
     // 深度值
-    float z = dep_img.at<uchar>(u, v);
+    float z = dep_img.at<ushort>(u, v);
     float x = z * (v - px) / fx;
     float y = z * (u - py) / fy;
+
+    std::cout << "x: " << x << " y: " << y << " z: " << z << std::endl;
 
     keypoint3d.id = box.class_id;
     keypoint3d.score = box.confidence;
