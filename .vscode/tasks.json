@@ -18,6 +18,12 @@
             "command": "colcon build --symlink-install  --cmake-args '-DCMAKE_BUILD_TYPE=Debug'",
             "group": "build",
             "problemMatcher": "$gcc"
+        },
+        {
+            "label": "launch realsense D435",
+            "detail": "launch depth alignment with rgb",
+            "type": "shell",
+            "command":"ros2 launch realsense2_camera rs_launch.py align_depth.enable:=true"
         }
         ,{
             "label":"launch camera",

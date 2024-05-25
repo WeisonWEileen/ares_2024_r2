@@ -36,7 +36,7 @@ namespace rc_auto_aim
 InferencerNode::InferencerNode(const rclcpp::NodeOptions & options)
 : Node("armor_detector_node"),
   count_(0),
-  box_detection_sub_(this, "/detector/balls"),
+  box_detection_sub_(this, "/detector/balls", rclcpp::SystemDefaultsQoS().get_rmw_qos_profile()),
   dep_image_sub_(this, "/camera/aligned_depth_to_color/image_raw")
 
 {
@@ -50,7 +50,7 @@ InferencerNode::InferencerNode(const rclcpp::NodeOptions & options)
       aligned_depth_caminfo_sub_.reset();
     });
   rgb_image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
-    "/image_raw", rclcpp::SensorDataQoS(),
+    "/camera/color/image_raw", rclcpp::SensorDataQoS(),
     std::bind(&InferencerNode::imageCallback, this, std::placeholders::_1));
   inferencer_ = initInferencer();
   debug_ = this->declare_parameter("debug", true);
@@ -60,12 +60,13 @@ InferencerNode::InferencerNode(const rclcpp::NodeOptions & options)
 
   // 创建球的目标发布者节点
   balls_pub_ = this->create_publisher<yolov8_msgs::msg::DetectionArray>(
-    "/detector/balls", rclcpp::SensorDataQoS());
+    "/detector/balls", rclcpp::SystemDefaultsQoS());
+  //创建球的3D目标发布节点
   keypoint3d_pub_ = this->create_publisher<yolov8_msgs::msg::KeyPoint3DArray>(
     "/detector/keypoint3d", rclcpp::SensorDataQoS());
 
   sync_ = std::make_unique<message_filters::Synchronizer<MySyncPolicy>>(
-    MySyncPolicy(10), box_detection_sub_, dep_image_sub_);
+    MySyncPolicy(100), box_detection_sub_, dep_image_sub_);
 
   sync_->registerCallback(std::bind(&InferencerNode::keypoint_imageCallback, this,std::placeholders::_1, std::placeholders::_2));
 
@@ -107,10 +108,12 @@ void InferencerNode::detectBalls(
   output_ = inferencer_->runInference(rgb_img);  //这里面已经改变了img
   visualizeBoxes(rgb_img, output_, output_.size());
   boxes_msg_ = convert_to_msg(output_);
-  balls_pub_->publish(boxes_msg_);
 
   //publish
-  // result_pub_.publish(cv_bridge::CvImage(img_msg->header, "rgb8", dep_img).toImageMsg());
+  result_pub_.publish(cv_bridge::CvImage(rgb_img_msg->header, "rgb8", rgb_img).toImageMsg());
+
+  
+  balls_pub_->publish(boxes_msg_);
 }
 
 void InferencerNode::project_to_3d_and_publish(

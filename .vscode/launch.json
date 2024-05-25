@@ -9,7 +9,7 @@
       "stopAtEntry": false,
       "externalConsole": false,
       "cwd": "${workspaceFolder}",
-      "program": "${workspaceFolder}/install/${input:package_name}/lib/${input:package_name}/${input:package_executable}",
+      "program": "${workspaceFolder}/install/armor_detector/lib/armor_detector/${input:package_executable}",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
