@@ -38,9 +38,9 @@ private:
   void imageCallback(
     const sensor_msgs::msg::Image::ConstSharedPtr rgb_img_msg);
     // 解算3D坐标的回调函数入口
-  void keypoint_imageCallback(
-    const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & box_msg,
-    const sensor_msgs::msg::Image::ConstSharedPtr & dep_img_msg);
+  // void keypoint_imageCallback(
+  //   const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & box_msg,
+  //   const sensor_msgs::msg::Image::ConstSharedPtr & dep_img_msg);
 
   std::unique_ptr<Inference> initInferencer();
 
@@ -68,15 +68,7 @@ private:
   // Image subscrpition
   // rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr img_sub_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr rgb_image_sub_;
-  message_filters::Subscriber<yolov8_msgs::msg::DetectionArray> box_detection_sub_;
-  message_filters::Subscriber<sensor_msgs::msg::Image> dep_image_sub_;
 
-  typedef message_filters::sync_policies::ApproximateTime<
-    yolov8_msgs::msg::DetectionArray, sensor_msgs::msg::Image>
-    MySyncPolicy;
-
-  typedef message_filters::Synchronizer<MySyncPolicy> Sync;
-  std::shared_ptr<Sync> sync_;
 
 
   // Debug information
@@ -93,14 +85,11 @@ private:
   // ball coordinate publisher
   yolov8_msgs::msg::DetectionArray boxes_msg_;
   rclcpp::Publisher<yolov8_msgs::msg::DetectionArray>::SharedPtr balls_pub_;
-  rclcpp::Publisher<yolov8_msgs::msg::KeyPoint3DArray>::SharedPtr keypoint3d_pub_;
 
   //to store the output for each frame
   std::vector<Detection> output_;
 
-  //获取相机rgb和深度对齐之后的内参，用于计算三维坐标，收到一次就关
-  std::shared_ptr<sensor_msgs::msg::CameraInfo> aligned_depth_caminfo_;
-  rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr aligned_depth_caminfo_sub_;
+
 
 };
 }  // namespace rc_auto_aim

@@ -35,40 +35,17 @@ namespace rc_auto_aim
 //message_filter 不能使用赋值运算符，因此放在这里赋予话题，初始化
 InferencerNode::InferencerNode(const rclcpp::NodeOptions & options)
 : Node("armor_detector_node"),
-  count_(0),
-  box_detection_sub_(this, "/detector/balls", rclcpp::SystemDefaultsQoS().get_rmw_qos_profile()),
-  dep_image_sub_(this, "/camera/aligned_depth_to_color/image_raw")
-
+  count_(0)
 {
   RCLCPP_INFO(this->get_logger(), "InferencerNode has been started.");
-
-//为了避免占用资源，收到一次消息后就取消订阅
-  aligned_depth_caminfo_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
-    "/camera/aligned_depth_to_color/camera_info", rclcpp::SensorDataQoS(),
-    [this](sensor_msgs::msg::CameraInfo::ConstSharedPtr camera_info) {
-      aligned_depth_caminfo_ = std::make_shared<sensor_msgs::msg::CameraInfo>(*camera_info);
-      aligned_depth_caminfo_sub_.reset();
-    });
   rgb_image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
     "/camera/color/image_raw", rclcpp::SensorDataQoS(),
     std::bind(&InferencerNode::imageCallback, this, std::placeholders::_1));
+    balls_pub_ = this->create_publisher<yolov8_msgs::msg::DetectionArray>("/detector/balls", 10);
   inferencer_ = initInferencer();
   debug_ = this->declare_parameter("debug", true);
-
   //发布图像可视化
   result_pub_ = image_transport::create_publisher(this, "/detector/result");
-
-  // 创建球的目标发布者节点
-  balls_pub_ = this->create_publisher<yolov8_msgs::msg::DetectionArray>(
-    "/detector/balls", rclcpp::SystemDefaultsQoS());
-  //创建球的3D目标发布节点
-  keypoint3d_pub_ = this->create_publisher<yolov8_msgs::msg::KeyPoint3DArray>(
-    "/detector/keypoint3d", rclcpp::SensorDataQoS());
-
-  sync_ = std::make_unique<message_filters::Synchronizer<MySyncPolicy>>(
-    MySyncPolicy(100), box_detection_sub_, dep_image_sub_);
-
-  sync_->registerCallback(std::bind(&InferencerNode::keypoint_imageCallback, this,std::placeholders::_1, std::placeholders::_2));
 
 }
 
@@ -79,12 +56,6 @@ void InferencerNode::imageCallback(
   detectBalls(rgb_img_msg);
 }
 
-void InferencerNode::keypoint_imageCallback(
-  const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & box_msg,
-  const sensor_msgs::msg::Image::ConstSharedPtr & dep_img_msg)
-{
-  project_to_3d_and_publish(box_msg, dep_img_msg);
-}
 
 //create unique inference object to detect potiential ball
 std::unique_ptr<Inference> InferencerNode::initInferencer()
@@ -102,54 +73,17 @@ void InferencerNode::detectBalls(
   const sensor_msgs::msg::Image::ConstSharedPtr & rgb_img_msg)
 {
   //头文件对其，后面用于匹配深度图
-  boxes_msg_.header = rgb_img_msg->header;
   //covert ros img msg to cv::Mat
   auto rgb_img = cv_bridge::toCvCopy(rgb_img_msg, "bgr8")->image;
   output_ = inferencer_->runInference(rgb_img);  //这里面已经改变了img
   visualizeBoxes(rgb_img, output_, output_.size());
   boxes_msg_ = convert_to_msg(output_);
-
+  boxes_msg_.header = rgb_img_msg->header;
   //publish
-  result_pub_.publish(cv_bridge::CvImage(rgb_img_msg->header, "rgb8", rgb_img).toImageMsg());
-
-  
+  result_pub_.publish(cv_bridge::CvImage(rgb_img_msg->header, "rgb8", rgb_img).toImageMsg()); 
   balls_pub_->publish(boxes_msg_);
 }
 
-void InferencerNode::project_to_3d_and_publish(
-  const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & boxes_msg,
-  const sensor_msgs::msg::Image::ConstSharedPtr & dep_img_msg)
-{
-  auto dep_img = cv_bridge::toCvShare(dep_img_msg)->image;
-    yolov8_msgs::msg::KeyPoint3DArray keypoint3d_array;
-
-  for (auto & box : boxes_msg->detections) {
-     yolov8_msgs::msg::KeyPoint3D keypoint3d;
-    // 像素球心坐标(u,v)
-    auto u = int( box.bbox.center.position.x + box.bbox.size.x / 2 );
-    auto v = int( box.bbox.center.position.y + box.bbox.size.y / 2 );
-
-    auto info_K = this->aligned_depth_caminfo_->k;
-    auto px = info_K[2];
-    auto py = info_K[5];
-    auto fx = info_K[0];
-    auto fy = info_K[4];
-    // 深度值
-    float z = dep_img.at<uchar>(u,v);
-    float x = z * (v - px) / fx;
-    float y = z * (u - py) / fy;
-
-    keypoint3d.id = box.class_id;
-    keypoint3d.score = box.confidence;
-    keypoint3d.point.x = x;
-    keypoint3d.point.y = y;
-    keypoint3d.point.z = z;
-    keypoint3d_array.data.emplace_back(keypoint3d);
-  }
-  // 3d坐标发布
-  keypoint3d_pub_->publish(keypoint3d_array);
-
-}
 
   void
   InferencerNode::createDebugPublishers()

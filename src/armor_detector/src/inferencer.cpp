@@ -86,6 +86,8 @@ std::vector<Detection> Inference::runInference(const cv::Mat &input)
     detections.push_back(result);
   }
 
+  std::cout<<"detections size: "<<detections.size()<<std::endl;
+
   return detections;
 }
 

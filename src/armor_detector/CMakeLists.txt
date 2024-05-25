@@ -49,6 +49,11 @@ rclcpp_components_register_node(${PROJECT_NAME}
   EXECUTABLE rc_armor_detector_node
 )
 
+rclcpp_components_register_node(${PROJECT_NAME}
+  PLUGIN rc_auto_aim::ProjectorNode
+  EXECUTABLE rc_armor_projector_node
+)
+
 
 
 #############

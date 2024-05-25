@@ -1,3 +1,42 @@
+// {
+//   "version": "0.2.0",
+//   "configurations": [
+//     {
+//       "name": "C/C++ Runner: Debug Session",
+//       "type": "cppdbg",
+//       "request": "launch",
+//       "args": [],
+//       "stopAtEntry": false,
+//       "externalConsole": false,
+//       "cwd": "${workspaceFolder}",
+//       "program": "${workspaceFolder}/install/${input:package_name}/lib/${input:package_name}/${input:package_executable}",
+//       "MIMode": "gdb",
+//       "miDebuggerPath": "gdb",
+//       "setupCommands": [
+//         {
+//           "description": "Enable pretty-printing for gdb",
+//           "text": "-enable-pretty-printing",
+//           "ignoreFailures": true
+//         }
+//       ]
+//     }
+//   ],
+//   "inputs": [
+//     {
+//       "id": "package_name",
+//       "type": "promptString",
+//       "description": "ros2 package name",
+//       "default": "cpp_primer_pubsub"
+//     },
+//     {
+//       "id": "package_executable",
+//       "type": "promptString",
+//       "description": "ros2 package executable",
+//       "default": "talker"
+//     }
+//   ]
+// }
+
 {
   "version": "0.2.0",
   "configurations": [
@@ -9,7 +48,7 @@
       "stopAtEntry": false,
       "externalConsole": false,
       "cwd": "${workspaceFolder}",
-      "program": "${workspaceFolder}/install/armor_detector/lib/armor_detector/${input:package_executable}",
+      "program": "${workspaceFolder}/install/armor_detector/lib/armor_detector/rc_armor_projection_node",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
@@ -19,20 +58,6 @@
           "ignoreFailures": true
         }
       ]
-    }
-  ],
-  "inputs": [
-    {
-      "id": "package_name",
-      "type": "promptString",
-      "description": "ros2 package name",
-      "default": "cpp_primer_pubsub"
-    },
-    {
-      "id": "package_executable",
-      "type": "promptString",
-      "description": "ros2 package executable",
-      "default": "talker"
     }
   ]
 }
