@@ -81,6 +81,8 @@ void ProjectorNode::project_to_3d_and_publish(
     auto v = int(box.bbox.center.position.x + box.bbox.size.x / 2);
     auto u = int(box.bbox.center.position.y + box.bbox.size.y / 2);
 
+    std::cout << "u: " << u << " v: " << v << std::endl;
+
     auto info_K = this->aligned_depth_caminfo_->k;
     auto px = info_K[2];
     auto py = info_K[5];

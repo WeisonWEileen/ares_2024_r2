@@ -20,11 +20,11 @@ def generate_launch_description():
 
     rc_armor_projector_node = Node(
         package="armor_detector",
-        executable="rc_armor_projection_node",
+        executable="rc_armor_projector_node",
         namespace="",
         output="screen",
         emulate_tty=True,
         # parameters=[config],
     )
 
-    return LaunchDescription([rc_armor_detector_node],[rc_armor_projector_node])
+    return LaunchDescription([rc_armor_detector_node,rc_armor_projector_node])
