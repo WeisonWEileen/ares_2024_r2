@@ -24,6 +24,10 @@
 //color image and depth image synchronize
 #include "message_filters/subscriber.h"
 #include "message_filters/time_synchronizer.h"
+#include "armor_detector/yolov8.hpp"
+#include "armor_detector/common.hpp"
+
+#define TENSORRT
 
 namespace rc_auto_aim
 {
@@ -57,8 +61,17 @@ private:
   void visualizeBoxes(cv::Mat & frame, const std::vector<Detection> & output, int size);
 
   //those detected_ball publisher
-
+  #ifdef ONNX
   std::unique_ptr<Inference> inferencer_;
+  #elif defined TENSORRT
+  // 这里实际上已经完全绕过了Inference类，直接使用了Yolov8类
+  std::unique_ptr<Yolov8> inferencer_;
+  // 需要使用一个common.hpp中的Objects结构体去储存检测到的目标
+  cv::Size size_ = cv::Size{640, 640};
+  std::vector<Objects> objs_;
+  // @TODO 和onnx那边的操作合并
+
+#endif
 
   //declaration of timer
 
@@ -77,14 +90,22 @@ private:
   std::shared_ptr<rclcpp::ParameterCallbackHandle> debug_cb_handle_;
 
   //convert dnn&&nmx output to box
+  #ifdef ONNX
   yolov8_msgs::msg::DetectionArray convert_to_msg(
     const std::vector<Detection> & detections);
+  #elif defined TENSORRT
+  yolov8_msgs::msg::DetectionArray convert_to_msg(const std::vector<Object> & detections);
+  #endif
+
+#endif
+
 
   image_transport::Publisher result_pub_;
 
-  // ball coordinate publisher
+  // ball coordinate publisher to store boxes_msg_
   yolov8_msgs::msg::DetectionArray boxes_msg_;
-  rclcpp::Publisher<yolov8_msgs::msg::DetectionArray>::SharedPtr balls_pub_;
+  // to store the cv format input for each frame
+  cv::Mat rgb_img_;  rclcpp::Publisher<yolov8_msgs::msg::DetectionArray>::SharedPtr balls_pub_;
 
   //to store the output for each frame
   std::vector<Detection> output_;

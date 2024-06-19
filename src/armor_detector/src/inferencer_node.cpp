@@ -30,6 +30,14 @@
 #include "yolov8_msgs/msg/detection_array.hpp"
 #include "yolov8_msgs/msg/key_point3_d.hpp"
 #include "yolov8_msgs/msg/key_point3_d_array.hpp"
+
+#include "armor_detector/yolov8.hpp"
+#incldue "armor_detector/common.hpp"
+
+// #define ONNX
+#define TENSORRT
+
+
 namespace rc_auto_aim
 {
 //message_filter 不能使用赋值运算符，因此放在这里赋予话题，初始化
@@ -61,11 +69,23 @@ void InferencerNode::imageCallback(
 std::unique_ptr<Inference> InferencerNode::initInferencer()
 {
   // @TODO 格式化标签读取，参考陈君实现
+
+  #ifdef ONNX
   auto pkg_path = ament_index_cpp::get_package_share_directory("armor_detector");
   auto model_path = pkg_path + "/model/2024_1000_pict_480_640.onnx";
   auto detector =
     std::make_unique<Inference>(model_path, cv::Size(640, 480), "classes.txt", true, true);
   return detector;
+
+  #elif defined TENSORRT
+
+  auto pkg_path = ament_index_cpp::get_package_share_directory("armor_detector");
+  auto model_path = pkg_path + "/model/2024_1000_pict_480_640.engine";
+  auto detector = std::make_unique<Yolov8>(model_path);
+
+  return detector;
+
+#endif
 }
 
 //run inference to detect
@@ -74,14 +94,36 @@ void InferencerNode::detectBalls(
 {
   //头文件对其，后面用于匹配深度图
   //covert ros img msg to cv::Mat
-  auto rgb_img = cv_bridge::toCvCopy(rgb_img_msg, "bgr8")->image;
+  rgb_img_ = cv_bridge::toCvCopy(rgb_img_msg, "bgr8")->image;
+  #ifdef ONNX
+  auto start = std::chrono::high_resolution_clock::now();
   output_ = inferencer_->runInference(rgb_img);  //这里面已经改变了img
+  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> diff = end - start;
+  std::cout << "Time to run inference: " << diff.count() << " s\n";
   visualizeBoxes(rgb_img, output_, output_.size());
   boxes_msg_ = convert_to_msg(output_);
   boxes_msg_.header = rgb_img_msg->header;
   //publish
   result_pub_.publish(cv_bridge::CvImage(rgb_img_msg->header, "bgr8", rgb_img).toImageMsg()); 
   balls_pub_->publish(boxes_msg_);
+
+  #elif defined TENSORRT
+  objs_.clear();
+  inferencer_->copy_from_Mat(rgb_img, size_);
+  auto start = std::chrono::system_clock::now();
+  inferencer_->infer();
+  auto end = std::chrono::system_clock::now();
+  inferencer_->postprocess(objs_);
+  yolov8->draw_objects(rgb_img, rgb_img, objs_, CLASS_NAMES, COLORS);
+  auto tc =
+    (double)std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.;
+  printf("cost %2.4lf ms\n", tc);
+  boxes_msg_ = convert_to_msg(objs_);
+  //publish
+  result_pub_.publish(cv_bridge::CvImage(rgb_img_msg->header, "bgr8", rgb_img).toImageMsg());
+  balls_pub_->publish(boxes_msg_);
+#endif
 }
 
 
@@ -118,6 +160,7 @@ void InferencerNode::visualizeBoxes(
 
 }  // namespace rc_auto_aim
 
+#ifdef ONNX
 yolov8_msgs::msg::DetectionArray InferencerNode::convert_to_msg(
   const std::vector<Detection> & detections)
 {
@@ -142,6 +185,29 @@ yolov8_msgs::msg::DetectionArray InferencerNode::convert_to_msg(
 
   return msg;
 }
+#elif defined TENSORRT
+yolov8_msgs::msg::DetectionArray convert_to_msg(const std::vector<Object> & detections){
+  yolov8_msgs::msg::DetectionArray msg;
+  // msg.header.stamp = this->now();
+  // msg.header.frame_id = "armor_detector";
+  // msg.detections.clear();
+
+  for (const auto & detection : detections) {
+    yolov8_msgs::msg::Detection detection_msg;
+    detection_msg.class_id = detection.label;
+    detection_msg.confidence = detection.prob;
+    // detection_msg.class_name = detection.className;d
+    detection_msg.bbox.center.position.x = detection.rect.x;
+    detection_msg.bbox.center.position.y = detection.rect.y;
+    //detection_msg.bbox.center.theta 这里面还没有利用
+    detection_msg.bbox.size.x = detection.rect.width;
+    detection_msg.bbox.size.y = detection.rect.height;
+    //计算三维坐标
+    msg.detections.emplace_back(detection_msg);
+  }
+}
+#endif
+
 }  // namespace rc_auto_aim
 
 #include "rclcpp_components/register_node_macro.hpp"
