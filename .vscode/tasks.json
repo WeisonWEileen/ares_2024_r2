@@ -24,6 +24,12 @@
             "detail": "launch depth alignment with rgb",
             "type": "shell",
             "command":"ros2 launch realsense2_camera rs_launch.py align_depth.enable:=true"
+        },
+        {
+            "label": "Debug inference Node ",
+            "detail": "purely using gdb prefix to start node",
+            "type": "shell",
+            "command":"ros2 run --prefix 'gdb -ex run --args' armor_detector rc_armor_detector_node"
         }
         ,{
             "label":"launch camera",
