@@ -12,6 +12,12 @@
             "problemMatcher": "$gcc"
         },
         {
+            "label": "fully launch detector",
+            "detail": "Build ROS 2 workspace with debug symbols",
+            "type": "shell",
+            "command":"ros2 launch armor_detector detector.launch.py "
+,        },
+        {
             "label": "debug workspace",
             "detail": "Build ROS 2 workspace with debug symbols",
             "type": "shell",

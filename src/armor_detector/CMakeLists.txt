@@ -27,7 +27,6 @@ if(USE_ONNX)
   ## Use C++14
   set(CMAKE_CXX_STANDARD 14)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
-  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
   ## By adding -Wall and -Werror, the compiler does not ignore warnings anymore,
   ## enforcing cleaner code.
@@ -67,23 +66,14 @@ elseif(USE_TENSORRT)
   add_definitions(-DTENSORRT)
 
   # 记得选择CUDA架构，tensorrt必备
-  option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
-
-  ## Use C++14
+    ## Use C++14
   set(CMAKE_CXX_STANDARD 14)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-  ## By adding -Wall and -Werror, the compiler does not ignore warnings anymore,
-  ## enforcing cleaner code.
-  add_definitions(-Wall -Werror)
+  option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 
   ## Export compile commands for clangd
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-  SET(CMAKE_BUILD_TYPE "Debug")
-  SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")
-  SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
   #######################
   ## Find dependencies ##
@@ -98,7 +88,7 @@ elseif(USE_TENSORRT)
 
   #  TensorRT
   set(TensorRT_INCLUDE_DIRS /usr/include/aarch64-linux-gnu)
-  set(TensorRT_LIBRARIES /usr/lib/aarch64-linux-gnu)
+  set(TensorRT_LIB_DIR  /usr/lib/aarch64-linux-gnu)
 
 
 
@@ -111,7 +101,8 @@ elseif(USE_TENSORRT)
   )
 
   target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS} ${TensorRT_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS})
-  target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} ${TensorRT_LIBRARIES} ${CUDA_LIB_DIR})
+  target_link_directories(${PROJECT_NAME} PUBLIC ${CUDA_LIB_DIR} ${TensorRT_LIB_DIR})
+  target_link_libraries(${PROJECT_NAME} nvinfer nvinfer_plugin ${OpenCV_LIBRARIES} ${TensorRT_LIBRARIES} ${CUDA_LIBRARIES})
 endif()
 
 
