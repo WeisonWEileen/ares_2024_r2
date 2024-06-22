@@ -1,10 +1,12 @@
 //
 // Created by ubuntu on 3/16/23.
 //
+
+#ifdef TENSORRT
 #ifndef JETSON_DETECT_YOLOV8_HPP
 #define JETSON_DETECT_YOLOV8_HPP
 #include "NvInferPlugin.h"
-#include "common.hpp"
+#include "armor_detector/common.hpp"
 #include "fstream"
 using namespace det;
 
@@ -281,3 +283,4 @@ void YOLOv8::draw_objects(const cv::Mat&                                image,
     }
 }
 #endif  // JETSON_DETECT_YOLOV8_HPP
+#endif

@@ -30,29 +30,32 @@
 #include "yolov8_msgs/msg/key_point3_d_array.hpp"
 #include "armor_detector/projection_node.hpp"
 
+// @TODO 话题软编码
 
 namespace rc_auto_aim
 {
 ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
 : Node("armor_projection_node"),
   box_detection_sub_(this, "/detector/balls"),
-  dep_image_sub_(this, "/camera/aligned_depth_to_color/image_raw")
+  dep_image_sub_(this, "/camera/camera/aligned_depth_to_color/image_raw")
 {
   RCLCPP_INFO(this->get_logger(), "ProjetionNode has been started.");
 
+  RCLCPP_INFO(this->get_logger(), "Ready to create camera_info sub.");
   aligned_depth_caminfo_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
-    "/camera/aligned_depth_to_color/camera_info", rclcpp::SensorDataQoS(),
+    "/camera/camera/aligned_depth_to_color/camera_info", rclcpp::SensorDataQoS(),
     [this](sensor_msgs::msg::CameraInfo::ConstSharedPtr camera_info) {
       aligned_depth_caminfo_ = std::make_shared<sensor_msgs::msg::CameraInfo>(*camera_info);
       aligned_depth_caminfo_sub_.reset();
     });
-
+  RCLCPP_INFO(this->get_logger(), "Ready to create keypoint3d publisher.");
   keypoint3d_pub_ = this->create_publisher<yolov8_msgs::msg::KeyPoint3DArray>(
     "/detector/keypoint3d", rclcpp::SensorDataQoS());
 
   sync_ = std::make_unique<message_filters::Synchronizer<MySyncPolicy>>(
     MySyncPolicy(200), box_detection_sub_, dep_image_sub_);
 
+  RCLCPP_INFO(this->get_logger(), "Ready to bind topics.");
   sync_->registerCallback(std::bind(
     &ProjectorNode::keypoint_imageCallback, this, std::placeholders::_1, std::placeholders::_2));
 

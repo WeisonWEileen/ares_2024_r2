@@ -1,7 +1,7 @@
 //
 // Created by ubuntu on 3/16/23.
 //
-
+#ifdef TENSORRT
 #ifndef JETSON_DETECT_COMMON_HPP
 #define JETSON_DETECT_COMMON_HPP
 #include "NvInfer.h"
@@ -139,3 +139,4 @@ struct PreParam {
 };
 }  // namespace det
 #endif  // JETSON_DETECT_COMMON_HPP
+#endif

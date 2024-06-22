@@ -4,18 +4,18 @@
             "label": "build workspace",
             "detail": "Build ROS 2 workspace",
             "type": "shell",
-            "command": "colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug --packages-select armor_detector",
+            "command": "colcon build --symlink-install --packages-select armor_detector",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "problemMatcher": "$gcc"
         },
-          {
+        {
             "label": "debug workspace",
             "detail": "Build ROS 2 workspace with debug symbols",
             "type": "shell",
-            "command": "colcon build --symlink-install  --cmake-args '-DCMAKE_BUILD_TYPE=Debug'",
+            "command": "colcon build --symlink-install",
             "group": "build",
             "problemMatcher": "$gcc"
         },
@@ -23,19 +23,22 @@
             "label": "launch realsense D435",
             "detail": "launch depth alignment with rgb",
             "type": "shell",
-            "command":"ros2 launch realsense2_camera rs_launch.py align_depth.enable:=true"
+            "command": "ros2 launch realsense2_camera rs_launch.py align_depth.enable:=true",
+            "problemMatcher": [
+                "$gulp-tsc"
+            ]
         },
         {
             "label": "Debug inference Node ",
             "detail": "purely using gdb prefix to start node",
             "type": "shell",
-            "command":"ros2 run --prefix 'gdb -ex run --args' armor_detector rc_armor_detector_node"
-        }
-        ,{
-            "label":"launch camera",
+            "command": "ros2 run --prefix 'gdb -ex run --args' armor_detector rc_armor_detector_node"
+        },
+        {
+            "label": "launch camera",
             "detail": "camera driver",
             "type": "shell",
-            "command": "ros2 run v4l2_camera v4l2_camera_node",
+            "command": "ros2 run v4l2_camera v4l2_camera_node"
         }
     ],
     "version": "2.0.0"

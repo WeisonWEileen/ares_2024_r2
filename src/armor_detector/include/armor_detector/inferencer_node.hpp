@@ -27,7 +27,13 @@
 #include "armor_detector/yolov8.hpp"
 #include "armor_detector/common.hpp"
 
-#define TENSORRT
+
+const std::vector<std::string> CLASS_NAMES = {
+    "red"   ,   "blue"   , "purple"   ,   "rim"
+};
+const std::vector<std::vector<unsigned int>> COLORS = {
+    {2555,0,0}    ,   {0,255,0}     ,   {128,128,0} ,{170, 170, 128}
+};
 
 namespace rc_auto_aim
 {
@@ -46,7 +52,14 @@ private:
   //   const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & box_msg,
   //   const sensor_msgs::msg::Image::ConstSharedPtr & dep_img_msg);
 
-  std::unique_ptr<Inference> initInferencer();
+
+  #ifdef ONNX
+    std::unique_ptr<Inference> initInferencer();
+  #elif defined TENSORRT
+  std::unique_ptr<YOLOv8> initInferencer();
+
+  #endif
+
 
   void detectBalls(
     const sensor_msgs::msg::Image::ConstSharedPtr & rgb_img_msg);
@@ -65,13 +78,13 @@ private:
   std::unique_ptr<Inference> inferencer_;
   #elif defined TENSORRT
   // 这里实际上已经完全绕过了Inference类，直接使用了Yolov8类
-  std::unique_ptr<Yolov8> inferencer_;
+  std::unique_ptr<YOLOv8> inferencer_;
   // 需要使用一个common.hpp中的Objects结构体去储存检测到的目标
   cv::Size size_ = cv::Size{640, 640};
-  std::vector<Objects> objs_;
+  std::vector<Object> objs_;
   // @TODO 和onnx那边的操作合并
 
-#endif
+  #endif
 
   //declaration of timer
 
@@ -97,7 +110,7 @@ private:
   yolov8_msgs::msg::DetectionArray convert_to_msg(const std::vector<Object> & detections);
   #endif
 
-#endif
+
 
 
   image_transport::Publisher result_pub_;
