@@ -74,7 +74,8 @@ std::unique_ptr<Inference> InferencerNode::initInferencer()
   // @TODO 格式化标签读取，参考陈君实现
 
   auto pkg_path = ament_index_cpp::get_package_share_directory("armor_detector");
-  auto model_path = pkg_path + "/model/2024_1000_pict_480_640.onnx";
+  // auto model_path = pkg_path + "/model/2024_1000_pict_480_640.onnx";
+  auto model_path = pkg_path + "/model/6_20_yolov8m.onnx";
   auto detector =
     std::make_unique<Inference>(model_path, cv::Size(640, 480), "classes.txt", true, true);
   return detector;
@@ -155,14 +156,14 @@ void InferencerNode::visualizeBoxes(
 
     // Detection box text
     std::string classString =
-      detection.className + ' ' + std::to_string(detection.confidence).substr(0, 4);
-    cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 1, 2, 0);
+      std::to_string(detection.class_id) + ' ' + std::to_string(detection.confidence).substr(0, 4);
+    cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 0.2, 2, 0);
     cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
 
-    cv::rectangle(frame, textBox, cv::Scalar(200, 200, 200), cv::FILLED);
-    cv::putText(
-      frame, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 1,
-      cv::Scalar(0, 0, 0), 2, 0);
+    // cv::rectangle(frame, textBox, cv::Scalar(100, 100, 100), cv::FILLED);
+    // cv::putText(
+    //   frame, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 1,
+    //   cv::Scalar(0, 0, 0), 2, 0);
   }
 
 }  // namespace rc_auto_aim

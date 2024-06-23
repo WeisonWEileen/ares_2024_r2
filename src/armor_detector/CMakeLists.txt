@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.10)
 
-option(USE_ONNX "Enable ONNX support" ON)
-option(USE_TENSORRT "Enable TensorRT support" OFF)
+set(CMAKE_SYSTEM_PROCESSOR "x86_64")
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+  message(STATUS "Onnx  Host system architecture: ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+  option(USE_ONNX "Enable ONNX support" ON)
+  option(USE_TENSORRT "Enable TensorRT support" OFF)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+  message(STATUS "Tensorrt Host system architecture: ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+  option(USE_TENSORRT "Enable TensorRT support" OFF)
+  option(USE_TENSORRT "Enable TensorRT support" ON)
+else()
+  message(FATAL_ERROR "Unsupport host system architecture: ${CMAKE_HOST_SYSTEM_PROCESSOR}!")
+endif()
 
 
 if(USE_TENSORRT)
@@ -20,8 +30,8 @@ if(USE_ONNX)
   # CUDA
   set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda")
   find_package(CUDA 11 REQUIRED)
-  # set(CMAKE_CUDA_STANDARD 11)
-  # set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+  set(CMAKE_CUDA_STANDARD 11)
+  set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
   ## Use C++14
   set(CMAKE_CXX_STANDARD 14)
@@ -30,7 +40,7 @@ if(USE_ONNX)
 
   ## By adding -Wall and -Werror, the compiler does not ignore warnings anymore,
   ## enforcing cleaner code.
-  # add_definitions(-Wall -Werror)
+  add_definitions(-Wall -Werror)
 
   ## Export compile commands for clangd
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
