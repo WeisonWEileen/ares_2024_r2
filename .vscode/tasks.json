@@ -1,7 +1,7 @@
 {
     "tasks": [
         {
-            "label": "build workspace",
+            "label": "build detector package",
             "detail": "Build ROS 2 workspace",
             "type": "shell",
             "command": "colcon build --symlink-install --packages-select armor_detector",
@@ -16,6 +16,12 @@
             "detail": "Build ROS 2 workspace with debug symbols",
             "type": "shell",
             "command":"ros2 launch armor_detector detector.launch.py "
+,        },
+        {
+            "label": "build work space",
+            "detail": "colcon build --symlink-install ",
+            "type": "shell",
+            "command":"colcon build --symlink-install  "
 ,        },
         {
             "label": "debug workspace",

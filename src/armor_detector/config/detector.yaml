@@ -1,0 +1,6 @@
+/rc_armor_detector_node:
+  ros__parameters:
+    debug: True
+    # cam_rgb_topic: /camera/depth/image_rect_raw
+    cam_rgb_topic: /image_raw
+    

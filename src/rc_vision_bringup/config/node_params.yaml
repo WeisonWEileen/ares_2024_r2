@@ -1,0 +1,10 @@
+/armor_detector_node:
+  ros__parameters:
+    debug: true
+    # cam_rgb_topic: /camera/depth/image_rect_raw
+    cam_rgb_topic: /image_raw
+
+/v4l2_camera_node:
+  ros__parameters:
+    camera_info_url: package://rc_vision_bringup/config/camera_info.yaml
+    auto_exposure: 3

@@ -3,4 +3,8 @@
 - ```inferencer.cpp```文件：onnx加速下的yolov8核心文件
 - ```include/yolov8.hpp```文件：TensorRT加速下的yolov8核心文件
 ---
-注意在CMakeLists.txt中指定要```CUDA```架构和加速类型
+# 不同平台运行注意事项
+- 注意在CMakeLists.txt中指定要```CUDA```架构和加速类型
+- jetson上的realsense的话题是namespace是```/camera/camera```,而x86架构上的```/camera```
+
+

@@ -1,0 +1,3 @@
+/v4l2_camera:
+  ros__parameters:
+    auto_exposure: 0

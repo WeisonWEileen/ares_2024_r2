@@ -86,8 +86,12 @@ private:
 
   #endif
 
-  //declaration of timer
+  void getParams();
+  
+  // topics
+  std::string cam_rgb_topic_;
 
+  //declaration of timer
   rclcpp::TimerBase::SharedPtr timer_;
   size_t count_;
 

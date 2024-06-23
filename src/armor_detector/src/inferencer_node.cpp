@@ -34,7 +34,6 @@
 #include "armor_detector/yolov8.hpp"
 #include "armor_detector/common.hpp"
 
-
 namespace rc_auto_aim
 {
 //message_filter 不能使用赋值运算符，因此放在这里赋予话题，初始化
@@ -43,17 +42,21 @@ InferencerNode::InferencerNode(const rclcpp::NodeOptions & options)
   count_(0)
 {
   RCLCPP_INFO(this->get_logger(), "InferencerNode has been started.");
-  rgb_image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
-    "/camera/camera/color/image_raw", rclcpp::SensorDataQoS(),
-    std::bind(&InferencerNode::imageCallback, this, std::placeholders::_1));
-    balls_pub_ = this->create_publisher<yolov8_msgs::msg::DetectionArray>("/detector/balls", 10);
-  inferencer_ = initInferencer();
-  RCLCPP_INFO(this->get_logger(), "ready to create debugger");
-  debug_ = this->declare_parameter("debug", true);
-  //发布图像可视化
-  RCLCPP_INFO(this->get_logger(), "ready to create publisher");
-  result_pub_ = image_transport::create_publisher(this, "/detector/result");
+  getParams();
 
+  rgb_image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
+    cam_rgb_topic_, rclcpp::SensorDataQoS(),
+    std::bind(&InferencerNode::imageCallback, this, std::placeholders::_1));
+  balls_pub_ = this->create_publisher<yolov8_msgs::msg::DetectionArray>("/detector/balls", 10);
+  inferencer_ = initInferencer();
+
+
+
+  //发布图像可视化
+  if(debug_){
+  RCLCPP_INFO(this->get_logger(), "ready to create bounding box drawer");
+  result_pub_ = image_transport::create_publisher(this, "/detector/result");
+  }
 }
 
 void InferencerNode::imageCallback(
@@ -63,7 +66,6 @@ void InferencerNode::imageCallback(
   RCLCPP_INFO(this->get_logger(), "Callback");
   detectBalls(rgb_img_msg);
 }
-
 
 #ifdef ONNX
 //create unique inference object to detect potiential ball
@@ -215,6 +217,16 @@ yolov8_msgs::msg::DetectionArray InferencerNode::convert_to_msg(
   return msg;
 }
 #endif
+
+void InferencerNode::getParams() {
+  // @TODO vision_bringup里面这里还是获取不了yaml的参数不知道为什么，详情见notion中的ROS
+
+  debug_ = this->declare_parameter("debug", true);
+  debug_ = this->get_parameter("debug").as_bool();
+
+  cam_rgb_topic_ = this->declare_parameter("cam_rgb_topic", "/image_raw");
+  cam_rgb_topic_ = this->get_parameter("cam_rgb_topic").as_string();
+}
 
 }  // namespace rc_auto_aim
 

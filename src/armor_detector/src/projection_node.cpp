@@ -30,14 +30,13 @@
 #include "yolov8_msgs/msg/key_point3_d_array.hpp"
 #include "armor_detector/projection_node.hpp"
 
-// @TODO 话题软编码
 
 namespace rc_auto_aim
 {
 ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
 : Node("armor_projection_node"),
   box_detection_sub_(this, "/detector/balls"),
-  dep_image_sub_(this, "/camera/camera/aligned_depth_to_color/image_raw")
+  dep_image_sub_(this, cam_dep_topic_)
 {
   RCLCPP_INFO(this->get_logger(), "ProjetionNode has been started.");
 
@@ -108,6 +107,11 @@ void ProjectorNode::project_to_3d_and_publish(
   // 3d坐标发布
   keypoint3d_pub_->publish(keypoint3d_array);
 }
+
+  void ProjectorNode::getParams() 
+  {
+    cam_dep_topic_ = this->declare_parameter("cam_dep_topic", ""); 
+  }
 }
 #include "rclcpp_components/register_node_macro.hpp"
 

@@ -15,8 +15,9 @@ import os
 
 def launch_setup(context, *args, **kwargs):
     def load_composable_node_param(param_path):
+
         with open(LaunchConfiguration(param_path).perform(context), "r") as f:
-            return yaml.safe_load(f)["/**"]["ros__parameters"]
+            return yaml.safe_load(f)["/v4l2_camera"]["ros__parameters"]
 
     composable_nodes = [
         ComposableNode(
@@ -107,7 +108,7 @@ def generate_launch_description():
 
     def add_launch_arg(name: str, default_value=None, description=None):
         launch_arguments.append(DeclareLaunchArgument(name, default_value=default_value, description=description))
-        
+
     ## weison added default intrinsic file position
     # camera_info_url = os.path.join(
     #     get_package_share_directory('v4l2_camera'), 'config', 'camera_info.yaml')
@@ -115,17 +116,23 @@ def generate_launch_description():
     add_launch_arg('container', '',
                    description='container name to load composable nodes into it. '
                    'If it is not specified, a new container will be created')
-    add_launch_arg('image_topic',
+    add_launch_arg('image_topic','/camera',
                    description='image topic name to be published')
-    add_launch_arg('camera_name',
+    add_launch_arg('camera_name','',
                    description='prefix to be added to the head of topic name')
     add_launch_arg('v4l2_camera_namespace', '/sensing/camera',
                    description='namespace in which the nodes launched')
-    add_launch_arg('v4l2_camera_param_path',
+    param_path = os.path.join(
+        get_package_share_directory("v4l2_camera"), "config", "camera_params.yaml"
+    )
+    add_launch_arg('v4l2_camera_param_path',param_path,
                    description='path to the yaml file that contains parameters for v4l2_camera node')
     # add_launch_arg('camera_info_url',default_value=camera_info_url,
     #                description='url to the yaml file that contains camera\'s intrinsic paramters')
-    add_launch_arg('camera_info_url',
+    info_path = os.path.join(
+        get_package_share_directory("v4l2_camera"), "config", "camera_info.yaml"
+    )
+    add_launch_arg('camera_info_url',info_path,
                    description='url to the yaml file that contains camera\'s intrinsic paramters')
     add_launch_arg('use_intra_process', 'False',
                    description='flag to use ROS2 intra process')

@@ -10,37 +10,41 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
-    realsense_launch = IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource([
-                        PathJoinSubstitution([
-                            FindPackageShare('realsense2_camera'), 'launch', 'rs_launch.py'
-                            ])
-                        ]),
-                    launch_arguments={
-                        'align_depth.enable': 'true'
-                        }.items(),
-                    )
-    rc_detector_node = Node(
-        package='armor_detector',
-        executable='rc_armor_detector_node',
-        namespace='',
-        output='screen',
-        emulate_tty=True,
-        # parameters=[config],
+    config = os.path.join(
+        get_package_share_directory("armor_detector"), "config", "detector.yaml"
     )
 
-    rc_projector_node = Node(
+    # realsense_launch = IncludeLaunchDescription(
+    # PythonLaunchDescriptionSource([
+    #     PathJoinSubstitution([
+    #         FindPackageShare('realsense2_camera'), 'launch', 'rs_launch.py'])]),
+    # launch_arguments={
+    #     'align_depth.enable': 'true'
+    #     }.items(),
+    # )
+
+    rc_detector_node = Node(
         package="armor_detector",
-        executable="rc_armor_projector_node",
-        namespace="",
+        executable="rc_armor_detector_node",
+        name="rc_armor_detector_node",
         output="screen",
         emulate_tty=True,
-        # parameters=[config],
+        parameters=[config],
+        ros_arguments=["--ros-args"],
     )
 
+    # rc_projector_node = Node(
+    #     package="armor_detector",
+    #     executable="rc_armor_projector_node",
+    #     namespace="",
+    #     output="screen",
+    #     emulate_tty=True,
+    #     # parameters=[config],
+    # )
+
     ld = LaunchDescription()
-    ld.add_action(realsense_launch)
+    # ld.add_action(realsense_launch)
     ld.add_action(rc_detector_node)
-    ld.add_action(rc_projector_node)
+    # ld.add_action(rc_projector_node)
 
     return ld

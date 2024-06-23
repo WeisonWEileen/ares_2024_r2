@@ -61,6 +61,9 @@ namespace rc_auto_aim
             void project_to_3d_and_publish(
               const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & boxes_msg,
               const sensor_msgs::msg::Image::ConstSharedPtr & dep_img_msg);
+
+            std::string cam_dep_topic_;
+            void getParams();
     };
 }  // namespace rc_auto_aim
 

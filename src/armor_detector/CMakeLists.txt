@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
-option(USE_ONNX "Enable ONNX support" OFF)
-option(USE_TENSORRT "Enable TensorRT support" ON)
+option(USE_ONNX "Enable ONNX support" ON)
+option(USE_TENSORRT "Enable TensorRT support" OFF)
 
 
 
@@ -17,20 +17,20 @@ if(USE_ONNX)
   add_definitions(-DONNX)
   message(STATUS "USE ONNX")
 
-
-  # CUDA PATH
+  # CUDA
   set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda")
   find_package(CUDA 11 REQUIRED)
-  set(CMAKE_CUDA_STANDARD 11)
-  set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+  # set(CMAKE_CUDA_STANDARD 11)
+  # set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
   ## Use C++14
   set(CMAKE_CXX_STANDARD 14)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
   ## By adding -Wall and -Werror, the compiler does not ignore warnings anymore,
   ## enforcing cleaner code.
-  add_definitions(-Wall -Werror)
+  # add_definitions(-Wall -Werror)
 
   ## Export compile commands for clangd
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -90,8 +90,6 @@ elseif(USE_TENSORRT)
   set(TensorRT_INCLUDE_DIRS /usr/include/aarch64-linux-gnu)
   set(TensorRT_LIB_DIR  /usr/lib/aarch64-linux-gnu)
 
-
-
   ###########
   ## Build ##
   ###########
@@ -122,4 +120,5 @@ ament_auto_package(
   INSTALL_TO_SHARE
   launch
   model
+  config
 )
