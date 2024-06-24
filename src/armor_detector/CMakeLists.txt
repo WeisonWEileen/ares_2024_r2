@@ -128,6 +128,7 @@ rclcpp_components_register_node(${PROJECT_NAME}
 # Shared Objects to be called
 ament_auto_package(
   INSTALL_TO_SHARE
+  include
   launch
   model
   config

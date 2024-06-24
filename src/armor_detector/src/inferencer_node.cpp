@@ -227,6 +227,8 @@ void InferencerNode::getParams() {
 
   cam_rgb_topic_ = this->declare_parameter("cam_rgb_topic", "/image_raw");
   cam_rgb_topic_ = this->get_parameter("cam_rgb_topic").as_string();
+
+
 }
 
 }  // namespace rc_auto_aim

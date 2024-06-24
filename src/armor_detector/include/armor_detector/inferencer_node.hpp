@@ -128,7 +128,9 @@ private:
   std::vector<Detection> output_;
 
 
+  // 决策相关
 
+  bool calculate_rim_ = 1;
 };
 }  // namespace rc_auto_aim
 

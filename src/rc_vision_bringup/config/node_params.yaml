@@ -7,4 +7,5 @@
 /v4l2_camera_node:
   ros__parameters:
     camera_info_url: package://rc_vision_bringup/config/camera_info.yaml
-    auto_exposure: 3
+    auto_exposure: 1
+    exposure_time_absolute: 112

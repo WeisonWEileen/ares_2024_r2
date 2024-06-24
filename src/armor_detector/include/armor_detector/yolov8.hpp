@@ -209,7 +209,6 @@ void YOLOv8::copy_from_Mat(const cv::Mat& image, cv::Size& size)
 
 void YOLOv8::infer()
 {
-
     this->context->enqueueV2(this->device_ptrs.data(), this->stream, nullptr);
     for (int i = 0; i < this->num_outputs; i++) {
         size_t osize = this->output_bindings[i].size * this->output_bindings[i].dsize;

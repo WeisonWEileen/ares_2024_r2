@@ -18,6 +18,12 @@
 struct Detection
 {
     int class_id{0};
+    // ------  //
+    //  0 --> rim
+    //  1 --> blue
+    //  2 --> purple 
+    //  3 --> red
+    // ------  //
     std::string className{};
     float confidence{0.0};
     // cv::Scalar color{};
