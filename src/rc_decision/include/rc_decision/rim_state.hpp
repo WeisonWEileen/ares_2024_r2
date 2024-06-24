@@ -32,6 +32,8 @@
 #include "yolov8_msgs/msg/key_point3_d.hpp"
 #include "yolov8_msgs/msg/key_point3_d_array.hpp"
 
+
+
 namespace rc_decision
 {
 class RimStateNode : public rclcpp::Node

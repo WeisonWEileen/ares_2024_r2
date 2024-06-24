@@ -19,30 +19,32 @@
 
 #include <algorithm>
 #include <ament_index_cpp/get_package_share_directory.hpp>
+#include <camera_info_manager/camera_info_manager.hpp>
 #include <chrono>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+#include<iostream>
 
+#include "armor_detector/projection_node.hpp"
 #include "yolov8_msgs/msg/detection_array.hpp"
 #include "yolov8_msgs/msg/key_point3_d.hpp"
 #include "yolov8_msgs/msg/key_point3_d_array.hpp"
-#include "armor_detector/projection_node.hpp"
-
-
 namespace rc_auto_aim
 {
 ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
 : Node("armor_projection_node"),
   box_detection_sub_(this, "/detector/balls"),
-  dep_image_sub_(this, cam_dep_topic_)
+  dep_image_sub_(this, "/camera/aligned_depth_to_color/image_raw")
 {
   RCLCPP_INFO(this->get_logger(), "ProjetionNode has been started.");
 
+  //从yaml中获取外参矩阵 
+  init_TransMatrix();
   RCLCPP_INFO(this->get_logger(), "Ready to create camera_info sub.");
   aligned_depth_caminfo_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
-    "/camera/camera/aligned_depth_to_color/camera_info", rclcpp::SensorDataQoS(),
+    "/camera/aligned_depth_to_color/camera_info", rclcpp::SensorDataQoS(),
     [this](sensor_msgs::msg::CameraInfo::ConstSharedPtr camera_info) {
       aligned_depth_caminfo_ = std::make_shared<sensor_msgs::msg::CameraInfo>(*camera_info);
       aligned_depth_caminfo_sub_.reset();
@@ -57,6 +59,8 @@ ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
   RCLCPP_INFO(this->get_logger(), "Ready to bind topics.");
   sync_->registerCallback(std::bind(
     &ProjectorNode::keypoint_imageCallback, this, std::placeholders::_1, std::placeholders::_2));
+
+    
 
 }
 
@@ -95,22 +99,65 @@ void ProjectorNode::project_to_3d_and_publish(
     float x = z * (v - px) / fx;
     float y = z * (u - py) / fy;
 
-    std::cout << "x: " << x << " y: " << y << " z: " << z << std::endl;
+    std::cout << "--------" << std::endl;
+    std::cout << "x: " << x << " y: " << y << " z: " << z << 
+    std::endl;
+
+    // 创建一个齐次坐标
+    Eigen::Vector4f point(x,y,z, 1.0);
+    // 乘以转换矩阵
+    Eigen::Vector4f transformed_point = cam2arm_trans_ * point;
+
+    // 相对于机械臂的坐标系
+    keypoint3d.point.x = transformed_point(0);
+    keypoint3d.point.y = transformed_point(1);
+    keypoint3d.point.z = transformed_point(2);
+
+    std::cout << "X: " << x << " Y: " << y << " Z: " << z << std::endl;
+    std::cout << "--------" << std::endl;
 
     keypoint3d.id = box.class_id;
     keypoint3d.score = box.confidence;
-    keypoint3d.point.x = x;
-    keypoint3d.point.y = y;
-    keypoint3d.point.z = z;
+    // keypoint3d.point.x = x;
+    // keypoint3d.point.y = y;
+    // keypoint3d.point.z = z;
     keypoint3d_array.data.emplace_back(keypoint3d);
   }
   // 3d坐标发布
   keypoint3d_pub_->publish(keypoint3d_array);
+
+
 }
 
-  void ProjectorNode::getParams() 
-  {
-    cam_dep_topic_ = this->declare_parameter("cam_dep_topic", ""); 
+
+  void ProjectorNode::init_TransMatrix(){
+    RCLCPP_INFO(this->get_logger(), "Ready to create extrinsic matrix.");
+
+    camera_name_ = this->declare_parameter("camera_name", "narrow_stereo");
+    camera_info_manager_ =
+      std::make_unique<camera_info_manager::CameraInfoManager>(this, camera_name_);
+    auto camera_info_url =
+      this->declare_parameter("camera_info_url", "package://armor_detector/config/extrinsic.yaml");
+    if (camera_info_manager_->validateURL(camera_info_url)) {
+      camera_info_manager_->loadCameraInfo(camera_info_url);
+      camera_info_msg_ = camera_info_manager_->getCameraInfo();
+    } else {
+      RCLCPP_WARN(this->get_logger(), "Invalid camera info URL: %s", camera_info_url.c_str());
+    }
+
+    auto raw_matrix = camera_info_msg_.p;
+
+    // 读取12个值
+    for (int i = 0; i < 4; ++i) {
+      for (int j = 0; j < 3; ++j) {
+        cam2arm_trans_(i, j) = raw_matrix[i+j];
+      }
+    }
+    cam2arm_trans_(3, 3) = 1;
+    RCLCPP_INFO(this->get_logger(), "------------------------");
+    RCLCPP_INFO(this->get_logger(), "Extrinsic matrix is:");
+    std::cout << cam2arm_trans_ << std::endl;
+    RCLCPP_INFO(this->get_logger(), "------------------------");
   }
 }
 #include "rclcpp_components/register_node_macro.hpp"

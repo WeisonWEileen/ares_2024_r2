@@ -225,10 +225,9 @@ void InferencerNode::getParams() {
   debug_ = this->declare_parameter("debug", true);
   debug_ = this->get_parameter("debug").as_bool();
 
-  cam_rgb_topic_ = this->declare_parameter("cam_rgb_topic", "/image_raw");
+  // cam_rgb_topic_ = this->declare_parameter("cam_rgb_topic", "/image_raw");
+  cam_rgb_topic_ = this->declare_parameter("cam_rgb_topic", "/camera/color/image_raw");
   cam_rgb_topic_ = this->get_parameter("cam_rgb_topic").as_string();
-
-
 }
 
 }  // namespace rc_auto_aim

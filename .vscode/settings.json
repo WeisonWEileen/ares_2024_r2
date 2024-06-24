@@ -150,7 +150,9 @@
     "variant": "cpp",
     "*.ipp": "cpp",
     "regex": "cpp",
-    "any": "cpp"
+    "any": "cpp",
+    "dense": "cpp",
+    "core": "cpp"
   },
   "C_Cpp.dimInactiveRegions": false
 }

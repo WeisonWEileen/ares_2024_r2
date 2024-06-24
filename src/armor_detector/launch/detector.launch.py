@@ -23,28 +23,28 @@ def generate_launch_description():
     #     }.items(),
     # )
 
-    rc_detector_node = Node(
-        package="armor_detector",
-        executable="rc_armor_detector_node",
-        name="rc_armor_detector_node",
-        output="screen",
-        emulate_tty=True,
-        parameters=[config],
-        ros_arguments=["--ros-args"],
-    )
-
-    # rc_projector_node = Node(
+    # rc_detector_node = Node(
     #     package="armor_detector",
-    #     executable="rc_armor_projector_node",
-    #     namespace="",
+    #     executable="rc_armor_detector_node",
+    #     name="rc_armor_detector_node",
     #     output="screen",
     #     emulate_tty=True,
-    #     # parameters=[config],
+    #     parameters=[config],
+    #     ros_arguments=["--ros-args"],
     # )
+
+    rc_projector_node = Node(
+        package="armor_detector",
+        executable="rc_armor_projector_node",
+        namespace="",
+        output="screen",
+        emulate_tty=True,
+        # parameters=[config],
+    )
 
     ld = LaunchDescription()
     # ld.add_action(realsense_launch)
-    ld.add_action(rc_detector_node)
+    ld.add_action(rc_projector_node)
     # ld.add_action(rc_projector_node)
 
     return ld

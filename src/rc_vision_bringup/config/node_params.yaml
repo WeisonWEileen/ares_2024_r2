@@ -1,4 +1,5 @@
-/armor_detector_node:
+# rc_auto_aim:
+detector_node:
   ros__parameters:
     debug: true
     # cam_rgb_topic: /camera/depth/image_rect_raw

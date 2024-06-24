@@ -55,6 +55,7 @@ if(USE_ONNX)
 
   find_package(ament_cmake_auto REQUIRED)
   find_package(OpenCV REQUIRED)
+  find_package(Eigen3 REQUIRED)
   # find_package(OpenMP REQUIRED)
   ament_auto_find_build_dependencies()
 
@@ -66,7 +67,7 @@ if(USE_ONNX)
     DIRECTORY src
   )
 
-  target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS})
+  target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
   target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
 
@@ -92,6 +93,7 @@ elseif(USE_TENSORRT)
   find_package(ament_cmake_auto REQUIRED)
   find_package(OpenCV REQUIRED)
   find_package(CUDA REQUIRED)
+  find_package(Eigen3 REQUIRED)
   get_filename_component(CUDA_LIB_DIR ${CUDA_LIBRARIES} DIRECTORY)
   # find_package(OpenMP REQUIRED)
   ament_auto_find_build_dependencies()
@@ -108,7 +110,7 @@ elseif(USE_TENSORRT)
     DIRECTORY src
   )
 
-  target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS} ${TensorRT_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS})
+  target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS} ${TensorRT_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
   target_link_directories(${PROJECT_NAME} PUBLIC ${CUDA_LIB_DIR} ${TensorRT_LIB_DIR})
   target_link_libraries(${PROJECT_NAME} nvinfer nvinfer_plugin ${OpenCV_LIBRARIES} ${TensorRT_LIBRARIES} ${CUDA_LIBRARIES})
 endif()

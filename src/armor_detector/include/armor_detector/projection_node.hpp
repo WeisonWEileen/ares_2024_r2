@@ -22,6 +22,9 @@
 #include "yolov8_msgs/msg/key_point3_d_array.hpp"
 
 //color image and depth image synchronize
+#include <Eigen/Dense>
+#include <camera_info_manager/camera_info_manager.hpp>
+
 #include "message_filters/subscriber.h"
 #include "message_filters/time_synchronizer.h"
 
@@ -62,8 +65,13 @@ namespace rc_auto_aim
               const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & boxes_msg,
               const sensor_msgs::msg::Image::ConstSharedPtr & dep_img_msg);
 
-            std::string cam_dep_topic_;
-            void getParams();
+
+            void init_TransMatrix();
+            Eigen::Matrix4f cam2arm_trans_ = Eigen::Matrix4f::Identity();
+
+            std::string camera_name_;
+            std::unique_ptr<camera_info_manager::CameraInfoManager> camera_info_manager_;
+            sensor_msgs::msg::CameraInfo camera_info_msg_;
     };
 }  // namespace rc_auto_aim
 

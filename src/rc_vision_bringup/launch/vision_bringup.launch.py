@@ -35,15 +35,8 @@ def generate_launch_description():
             package="rclcpp_components",
             executable="component_container",
             composable_node_descriptions=[
-                camera_node,
+                # camera_node,
                 detecor_node,
-                # ComposableNode(
-                #     package="armor_detector",
-                #     plugin="rc_auto_aim::InferencerNode",
-                #     name="armor_detector_node",
-                #     parameters=[node_params],
-                #     extra_arguments=[{"use_intra_process_comms": True}],
-                # ),
             ],
             output="both",
             emulate_tty=True,
@@ -94,8 +87,19 @@ def generate_launch_description():
     #     actions=[tracker_node],
     # )
 
-    return LaunchDescription(
-        [
-            cam_detector,
-        ]
+    from launch.actions import IncludeLaunchDescription
+    from launch.launch_description_sources import PythonLaunchDescriptionSource
+    from launch.substitutions import PathJoinSubstitution
+    from launch_ros.substitutions import FindPackageShare
+
+    realsense_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                PathJoinSubstitution(
+                    [FindPackageShare("realsense2_camera"), "launch", "rs_launch.py"]
+                )
+            ]
+        ),
+        launch_arguments={"align_depth.enable": "true"}.items(),
     )
+    return LaunchDescription([cam_detector, realsense_launch])
