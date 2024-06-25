@@ -27,6 +27,7 @@
 
 #include "message_filters/subscriber.h"
 #include "message_filters/time_synchronizer.h"
+#include "tf2_ros/static_transform_broadcaster.h"
 
 namespace rc_auto_aim
 {
@@ -66,13 +67,18 @@ namespace rc_auto_aim
               const sensor_msgs::msg::Image::ConstSharedPtr & dep_img_msg);
 
 
-            void init_TransMatrix();
-            Eigen::Matrix4f cam2arm_trans_ = Eigen::Matrix4f::Identity();
+            // void init_TransMatrix();
+            // Eigen::Matrix4f cam2arm_trans_ = Eigen::Matrix4f::Identity();
 
             std::string camera_name_;
             std::unique_ptr<camera_info_manager::CameraInfoManager> camera_info_manager_;
             sensor_msgs::msg::CameraInfo camera_info_msg_;
-    };
+
+            // tf2 static broadcaster
+            std::shared_ptr<tf2_ros::StaticTransformBroadcaster> tf_static_broadcaster_;
+            // 发布固定的相机相对的机械的坐标关系
+            void make_camera_roboarm_tranform();
+        };
 }  // namespace rc_auto_aim
 
 #endif  

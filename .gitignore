@@ -9,3 +9,5 @@ src/CV_test
 *.pt    
 *.onnx
 *.engine
+test
+test.cpp

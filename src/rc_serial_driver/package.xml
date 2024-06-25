@@ -6,7 +6,7 @@
   <name>rc_serial_driver</name>
   <version>0.1.0</version>
   <description>A template for ROS packages.</description>
-  <maintainer email="chen.junn@outlook.com">Chen Jun</maintainer>
+  <maintainer email="weisonweileen@gmail.com">Chen Jun</maintainer>
   <license>MIT</license>
   <url type="website">https://github.com/chenjunnn/ros2_mindvision_camera</url>
   <url type="bugtracker">https://github.com/chenjunnn/ros2_mindvision_camera/issues</url>

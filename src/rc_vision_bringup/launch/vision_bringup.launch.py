@@ -28,16 +28,13 @@ def generate_launch_description():
             extra_arguments=[{"use_intra_process_comms": True}],
         )
 
-    def get_camera_detector_container(camera_node, detecor_node):
+    def get_camera_detector_projector_container(*regestered_nodes):
         return ComposableNodeContainer(
             name="cam_detector_container",
             namespace="",
             package="rclcpp_components",
             executable="component_container",
-            composable_node_descriptions=[
-                # camera_node,
-                detecor_node,
-            ],
+            composable_node_descriptions=list(regestered_nodes),
             output="both",
             emulate_tty=True,
             ros_arguments=[
@@ -51,7 +48,12 @@ def generate_launch_description():
         "v4l2_camera", "v4l2_camera::V4L2Camera", "v4l2_camera_node"
     )
     detecor_node = get_camera_node("armor_detector", "rc_auto_aim::InferencerNode","detector_node")
-    cam_detector = get_camera_detector_container(v4l2_camera_node, detecor_node)
+    projector_node = get_camera_node("armor_detector", "rc_auto_aim::ProjectorNode","projector_node")
+    cam_detector = get_camera_detector_projector_container(
+        # v4l2_camera_node, 
+        detecor_node, 
+        # projector_node
+    )
 
     # mv_camera_node = get_camera_node(
     #     "mindvision_camera", "mindvision_camera::MVCameraNode"
@@ -86,7 +88,8 @@ def generate_launch_description():
     #     period=2.0,
     #     actions=[tracker_node],
     # )
-
+    # realsense并没有component的选项
+    
     from launch.actions import IncludeLaunchDescription
     from launch.launch_description_sources import PythonLaunchDescriptionSource
     from launch.substitutions import PathJoinSubstitution
