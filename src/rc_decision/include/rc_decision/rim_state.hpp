@@ -70,8 +70,10 @@ private:
     O_0_E_0, 
     O_0_E_0, 
     O_0_E_0
-    
     };
+
+  rclcpp::Subscription<yolov8_msgs::msg::DetectionArray>::SharedPtr detect_result_sub_;
+  rclcpp::Publisher<std::msgs::msg::String>::SharedPtr rim_state_pub_;
 
   void detectResultCallback(
     const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & detect_result_msg);

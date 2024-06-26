@@ -49,7 +49,7 @@
       "externalConsole": false,
       "cwd": "${workspaceFolder}",
       // "program": "${workspaceFolder}/install/armor_detector/lib/armor_detector/rc_armor_detector_node",
-      "program": "${workspaceFolder}/install/armor_detector/lib/armor_detector/rc_armor_projector_node",
+      "program": "${workspaceFolder}/install/armor_detector/lib/armor_detector/rc_carry_state_node",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

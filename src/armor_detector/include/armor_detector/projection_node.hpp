@@ -16,6 +16,8 @@
 #include <vector>
 
 #include "armor_detector/inferencer.h"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "yolov8_msgs/msg/detection.hpp"
 #include "yolov8_msgs/msg/detection_array.hpp"
 #include "yolov8_msgs/msg/key_point3_d.hpp"
@@ -27,7 +29,15 @@
 
 #include "message_filters/subscriber.h"
 #include "message_filters/time_synchronizer.h"
+#include "tf2_ros/buffer.h"
 #include "tf2_ros/static_transform_broadcaster.h"
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_ros/transform_listener.h"
+
+#define PI 3.1415926f
+#define BALL_RADIUS_mm 90
+#define Coefficient 0.5
+#define BALL_RADIUS_m 0.095
 
 namespace rc_auto_aim
 {
@@ -74,11 +84,28 @@ namespace rc_auto_aim
             std::unique_ptr<camera_info_manager::CameraInfoManager> camera_info_manager_;
             sensor_msgs::msg::CameraInfo camera_info_msg_;
 
-            // tf2 static broadcaster
+            // tf2 static broadcaster for camera and roboarm
+
+            // Total tf2 initailization funciton
+            void init_tf2();
+
             std::shared_ptr<tf2_ros::StaticTransformBroadcaster> tf_static_broadcaster_;
             // 发布固定的相机相对的机械的坐标关系
             void make_camera_roboarm_tranform();
-        };
+        
+            // tf2 dynamic broadcaster for ball detect
+            std::shared_ptr<tf2_ros::TransformBroadcaster> tf_dynamic_broadcaster_;
+
+            //buffer to store
+
+
+            std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+            std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+
+
+            // std::string target_frame_;
+            // std::shared_ptr<tf2_filter> tf_filter_
+    };
 }  // namespace rc_auto_aim
 
 #endif  

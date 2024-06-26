@@ -10,3 +10,6 @@ detector_node:
     camera_info_url: package://rc_vision_bringup/config/camera_info.yaml
     auto_exposure: 1
     exposure_time_absolute: 112
+    image_size:
+      - 1280
+      - 720

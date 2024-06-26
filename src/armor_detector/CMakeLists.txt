@@ -127,6 +127,19 @@ rclcpp_components_register_node(${PROJECT_NAME}
   EXECUTABLE rc_armor_projector_node
 )
 
+add_executable(rc_carry_state_node src/carry_state_node.cpp)
+ament_target_dependencies(rc_carry_state_node
+  rclcpp
+  sensor_msgs
+  OpenCV
+  cv_bridge
+)
+
+install(TARGETS
+  rc_carry_state_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 # Shared Objects to be called
 ament_auto_package(
   INSTALL_TO_SHARE

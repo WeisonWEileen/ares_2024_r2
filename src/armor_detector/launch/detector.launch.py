@@ -23,15 +23,15 @@ def generate_launch_description():
     #     }.items(),
     # )
 
-    # rc_detector_node = Node(
-    #     package="armor_detector",
-    #     executable="rc_armor_detector_node",
-    #     name="rc_armor_detector_node",
-    #     output="screen",
-    #     emulate_tty=True,
-    #     parameters=[config],
-    #     ros_arguments=["--ros-args"],
-    # )
+    rc_detector_node = Node(
+        package="armor_detector",
+        executable="rc_armor_detector_node",
+        name="rc_armor_detector_node",
+        output="screen",
+        emulate_tty=True,
+        parameters=[config],
+        ros_arguments=["--ros-args"],
+    )
 
     rc_projector_node = Node(
         package="armor_detector",
@@ -42,9 +42,26 @@ def generate_launch_description():
         # parameters=[config],
     )
 
+    carry_state_node = Node(
+        package="armor_detector",
+        executable="rc_carry_state_node",
+        namespace="",
+        output="screen",
+        emulate_tty=True,
+        parameters=[{
+            'camera_port': "/dev/video0" ,# Default camera port, can be overridden by launch arguments
+            'roi':[190,250,480,550], #row range(a,b),col range(c,d)The ROI to detect whether the robot is carrying the ball 
+            'thres': 3800,#The threshold of the sum of the pixel values in the ROI
+            'fps':20,
+
+            }],
+        arguments=['--ros-args', '--log-level', 'debug'],
+    )
+
     ld = LaunchDescription()
     # ld.add_action(realsense_launch)
-    ld.add_action(rc_projector_node)
     # ld.add_action(rc_projector_node)
+    # ld.add_action(rc_projector_node)
+    ld.add_action(carry_state_node)
 
     return ld

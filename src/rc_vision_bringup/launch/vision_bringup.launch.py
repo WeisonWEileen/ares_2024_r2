@@ -105,4 +105,8 @@ def generate_launch_description():
         ),
         launch_arguments={"align_depth.enable": "true"}.items(),
     )
-    return LaunchDescription([cam_detector, realsense_launch])
+    return LaunchDescription(
+        [
+            cam_detector, 
+            realsense_launch
+        ])
