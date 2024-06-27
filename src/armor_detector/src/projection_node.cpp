@@ -14,6 +14,7 @@
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "geometry_msgs/msg/transform.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 // STD
 #include <message_filters/subscriber.h>
@@ -98,7 +99,7 @@ void ProjectorNode::project_to_3d_and_publish(
 //   auto dep_img = cv_bridge::toCvShare(dep_img_msg)->image;
   yolov8_msgs::msg::KeyPoint3DArray keypoint3d_array;
 
-  int i = 0;
+  // int i = 0;
   for (auto & box : boxes_msg->detections) {
     yolov8_msgs::msg::KeyPoint3D keypoint3d;
     // 像素球心坐标(u,v)
@@ -145,53 +146,23 @@ void ProjectorNode::project_to_3d_and_publish(
     geometry_msgs::msg::PointStamped ps;
 
     // @TODO 滤波器
-    rclcpp::Time now = this->get_clock()->now();
-    trans.header.stamp = ps.header.stamp= now;
-    trans.header.frame_id = ps.header.frame_id ="cam_realsense";
-    std::string child_frame_id = "ball" + std::to_string(i);
-    trans.child_frame_id = child_frame_id;
-    trans.transform.translation.x = x;
-    trans.transform.translation.y = y;
-    trans.transform.translation.z = z;
-    trans.transform.rotation.x = 0;
-    trans.transform.rotation.y = 0;
-    trans.transform.rotation.z = 0;
-    trans.transform.rotation.w = 1;
-    tf_dynamic_broadcaster_->sendTransform(trans);
-    i++;
 
-    // 储存这个时刻小球的世界坐标系下小球的坐标
-    // geometry_msgs::msg::Pose ball_cor;
-    // geometry_msgs::msg::Point ball_cor;
+    // geometry_msgs::msg::Point cam_point;
+    // geometry_msgs::msg::Point arm_point;
+    // tf2::Transform tf2_transform;
+    // tf2::fromMsg(t, tf2_transform);
 
-    // try {
-    //   ball_cor = tf_buffer_->transform(ps, "roboarm_base").point;
-    // } catch (tf2::TransformException & ex) {
-    //   RCLCPP_WARN(this->get_logger(), "Transform failed: %s", ex.what());
-    //   return;
-    // }
+    tf2::Vector3 cam_point_tf2(x, y, z);
+    tf2::Vector3 arm_point_tf2 = cam2robo_tran_ * cam_point_tf2;
 
-    // RCLCPP_INFO(
-    //   this->get_logger(), "Point in base frame: x=%f, y=%f, z=%f", ball_cor.x,
-    //   ball_cor.y, ball_cor.z);
+    // cam_point.x = x;
+    // cam_point.y = y;
+    // cam_point.z = z;
+    // arm_point = t * cam_point;
 
-    // RCLCPP_INFO(
-    //   this->get_logger(), "Point in base frame: x=%f, y=%f, z=%f", ball_cor.position.x,
-    //   ball_cor.position.y, ball_cor.position.z);
-
-    // geometry_msgs::msg::PoseStamped ps;
-    // point_in_camera_frame.header.frame_id = "cam_realsense";
-    // ps.point.x = x;  // x, y, z 是在相机坐标系下的坐标
-    // ps.point.y = y;
-    // ps.point.z = z;
-
-    // geometry_msgs::msg::PointStamped point_in_base_frame;
-    // try {
-    //   point_in_base_frame = tf_buffer_->transform(point_in_camera_frame, "roboarm_base");
-    // } catch (tf2::TransformException & ex) {
-    //   RCLCPP_WARN(this->get_logger(), "Transform failed: %s", ex.what());
-    //   return;
-    // }
+    RCLCPP_INFO(
+      this->get_logger(), "arm_point: (%f, %f, %f)", arm_point_tf2.x(), arm_point_tf2.y(),
+      arm_point_tf2.z());
 
     //yolov8_msgs 发布 
     // keypoint3d.id = box.class_id;
@@ -219,27 +190,32 @@ void ProjectorNode::project_to_3d_and_publish(
       this->get_logger(), "The input Param: roll=%f, pitch=%f, yaw=%f, x=%f, y=%f, z=%f", roll, pitch,
       yaw, x, y, z);
 
-    geometry_msgs::msg::TransformStamped t;
+    // geometry_msgs::msg::Transform t;
 
-    RCLCPP_INFO(this->get_logger(), "Ready to create tf2 static broadcaster.");
-    t.header.stamp = this->get_clock()->now();
-    t.header.frame_id = "roboarm_base";
-    t.child_frame_id = "cam_realsense";
+    // RCLCPP_INFO(this->get_logger(), "Ready to create tf2 static broadcaster.");
+    // t.header.stamp = this->get_clock()->now();
+    // t.header.frame_id = "roboarm_base";
+    // t.child_frame_id = "cam_realsense";
 
-    t.transform.translation.x = x;
-    t.transform.translation.y = y;
-    t.transform.translation.z = z;
+    geometry_msgs::msg::Transform t;
+
+    t.translation.x = x;
+    t.translation.y = y;
+    t.translation.z = z;
 
     tf2::Quaternion q;
     // tf2::Quaternion q2;
     q.setRPY(roll, pitch, yaw);
 
-    t.transform.rotation.x = q.x();
-    t.transform.rotation.y = q.y();
-    t.transform.rotation.z = q.z();
-    t.transform.rotation.w = q.w();
+    t.rotation.x = q.x();
+    t.rotation.y = q.y();
+    t.rotation.z = q.z();
+    t.rotation.w = q.w();
 
-    tf_static_broadcaster_->sendTransform(t);
+    tf2::fromMsg(t, cam2robo_tran_);
+    // tf2::fromMsg(t.tranform, cam2arm_tran_);
+
+    // tf_static_broadcaster_->sendTransform(t);
 }
 
 void ProjectorNode::init_tf2(){

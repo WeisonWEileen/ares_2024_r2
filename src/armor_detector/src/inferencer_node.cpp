@@ -47,9 +47,9 @@ InferencerNode::InferencerNode(const rclcpp::NodeOptions & options)
   rgb_image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
     cam_rgb_topic_, rclcpp::SensorDataQoS(),
     std::bind(&InferencerNode::imageCallback, this, std::placeholders::_1));
+    
   balls_pub_ = this->create_publisher<yolov8_msgs::msg::DetectionArray>("/detector/balls", 10);
   inferencer_ = initInferencer();
-
 
 
   //发布图像可视化

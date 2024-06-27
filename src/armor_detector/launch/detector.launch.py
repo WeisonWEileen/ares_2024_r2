@@ -60,8 +60,7 @@ def generate_launch_description():
 
     ld = LaunchDescription()
     # ld.add_action(realsense_launch)
-    # ld.add_action(rc_projector_node)
-    # ld.add_action(rc_projector_node)
-    ld.add_action(carry_state_node)
+    ld.add_action(rc_projector_node)
+    # ld.add_action(carry_state_node)
 
     return ld

@@ -107,6 +107,6 @@ def generate_launch_description():
     )
     return LaunchDescription(
         [
-            cam_detector, 
-            realsense_launch
+            realsense_launch,
+            cam_detector
         ])

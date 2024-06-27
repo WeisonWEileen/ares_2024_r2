@@ -27,9 +27,9 @@
 namespace rc_serial_driver
 {
     float target_point = 0;                              // 当前目标的像素点的x值
-    static int exist_result = 0;                         // 是否存在目标（是否存在蓝球或者红球，蓝球对应的id是3，红球对应的id是2）
-    static size_t num_detections = 0; // 识别到的蓝球的个数
-    static float max_radius = 0;  // 记录球的最大半径
+    // static int exist_result = 0;                         // 是否存在目标（是否存在蓝球或者红球，蓝球对应的id是3，红球对应的id是2）
+    // static size_t num_detections = 0; // 识别到的蓝球的个数
+    // static float max_radius = 0;  // 记录球的最大半径
     RCSerialDriver::RCSerialDriver(const rclcpp::NodeOptions &options)
         : Node("rc_serial_driver", options),
           owned_ctx_{new IoContext(2)},
@@ -82,8 +82,8 @@ namespace rc_serial_driver
 
         // Create Subscription                                    DetectionArray
         target_sub_ = this->create_subscription<yolov8_msgs::msg::DetectionArray>(
-            "/yolo/tracking", rclcpp::SensorDataQoS(),
-            std::bind(&RCSerialDriver::sendData, this, std::placeholders::_1));
+          "/cmd_vel", rclcpp::SensorDataQoS(),
+          std::bind(&RCSerialDriver::sendData, this, std::placeholders::_1));
     }
 
     RCSerialDriver::~RCSerialDriver()
@@ -184,97 +184,103 @@ namespace rc_serial_driver
             {"", 0}, {"outpost", 0}, {"1", 1}, {"1", 1}, {"2", 2}, {"3", 3}, {"4", 4}, {"5", 5}, {"guard", 6}, {"base", 7}};
 
         
-        //show the number of detections
-        num_detections = msg->detections.size();
-        RCLCPP_INFO(get_logger(), "Number of detections: %zu", num_detections);
+        // //show the number of detections
+        // num_detections = msg->detections.size();
+        // RCLCPP_INFO(get_logger(), "Number of detections: %zu", num_detections);
 
         try
         {
             SendPacket packet;
+            packet.chasis_vx = 1.0f;
+            packet.chasis_vx = 2.0f;
+            packet.chasis_vx = 3.0f;
+            packet.chasis_vx = 4.0f;
+            packet.chasis_vx = 5.0f;
+            packet.chasis_vx = 6.0f;
+
+            // //如果检测到了球(R/B,P)
+            // if (num_detections > 0)
+            // {
+            //     //@TODO 现在是不高效的，先写出来尝试吧
+
+            //     //运动学解算公式
+            //     // motor_3508[0].desireRpm = (-chassis_vxyz.vx + chassis_vxyz.vy + chassis_vxyz.wz) * rpmCoeff;
+            //     // motor_3508[1].desireRpm = -(chassis_vxyz.vx + chassis_vxyz.vy - chassis_vxyz.wz) * rpmCoeff;
+            //     // motor_3508[2].desireRpm = -(-chassis_vxyz.vx + chassis_vxyz.vy - chassis_vxyz.wz) * rpmCoeff;
+            //     // motor_3508[3].desireRpm = (chassis_vxyz.vx + chassis_vxyz.vy + chassis_vxyz.wz) * rpmCoeff;
+
+            //     //遍历，找出来半径最大的那个球,先归0，方式上一帧msg的数据影响
+            //     max_radius = 0;
+            //     exist_result = 0;
+
+            //     for (const auto &detection : msg->detections)
+            //     {
+            //         if (detection.class_id != 3)
+            //         {
+            //             continue; // 如果不是蓝球，就跳过
+            //         }
+
+            //         //如果是蓝球，那么求出最大的半径对应的目标点，目前半径是直接取x值,因为x值在取球过程中快消失的时候比较稳定
+            //         // if (detection.bbox.size.x > max_radius)
+            //         // {
+            //             // max_radius = detection.size.x;
+            //         target_point = detection.bbox.center.position.x;
+            //         // }
+
+            //         exist_result = 1;
+            //     }
+
+            //     // 如果检测到了R/B
+            //     if (exist_result)
+            //     {
+            //         //像素中心点是320，对应球心偏左
+            //         if (target_point  > 400)
+            //         {
+            //             packet.chasis_motor01 = -700.0f;
+            //             packet.chasis_motor02 = -700.0f;
+            //             packet.chasis_motor03 = -700.0f;
+            //             packet.chasis_motor04 = -700.0f;
+            //         }
+            //         //对应球心偏右
+            //         else if (target_point < 240)
+            //         {
+            //             packet.chasis_motor01 = 700.0f;
+            //             packet.chasis_motor02 = 700.0f;
+            //             packet.chasis_motor03 = 700.0f;
+            //             packet.chasis_motor04 = 700.0f;
+            //         }
+            //         //对应球心在中间，直接向前开
+            //         else 
+            //         {
+            //             // packet.chasis_motor01 =  700.0f;
+            //             // packet.chasis_motor02 = -700.0f;
+            //             // packet.chasis_motor03 =  700.0f;
+            //             // packet.chasis_motor04 = -700.0f;
+            //             packet.chasis_motor01 = -700.0f;
+            //             packet.chasis_motor02 = 700.0f;
+            //             packet.chasis_motor03 = 700.0f;
+            //             packet.chasis_motor04 = -700.0f;
+            //         }
+            //     }
             
-            //如果检测到了球(R/B,P)
-            if (num_detections > 0)
-            {
-                //@TODO 现在是不高效的，先写出来尝试吧
+            //     //对应只有紫球的情况
+            //     else
+            //     {
+            //         packet.chasis_motor01 = 0.0f;
+            //         packet.chasis_motor02 = 0.0f;
+            //         packet.chasis_motor03 = 0.0f;
+            //         packet.chasis_motor04 = 0.0f;
+            //     }
+            // }
+            // //如果没有检测到球
+            // else{
+            //     packet.chasis_motor01 = 0.0f;
+            //     packet.chasis_motor02 = 0.0f;
+            //     packet.chasis_motor03 = 0.0f;
+            //     packet.chasis_motor04 = 0.0f;
+            // }
 
-                //运动学解算公式
-                // motor_3508[0].desireRpm = (-chassis_vxyz.vx + chassis_vxyz.vy + chassis_vxyz.wz) * rpmCoeff;
-                // motor_3508[1].desireRpm = -(chassis_vxyz.vx + chassis_vxyz.vy - chassis_vxyz.wz) * rpmCoeff;
-                // motor_3508[2].desireRpm = -(-chassis_vxyz.vx + chassis_vxyz.vy - chassis_vxyz.wz) * rpmCoeff;
-                // motor_3508[3].desireRpm = (chassis_vxyz.vx + chassis_vxyz.vy + chassis_vxyz.wz) * rpmCoeff;
-
-                //遍历，找出来半径最大的那个球,先归0，方式上一帧msg的数据影响
-                max_radius = 0;
-                exist_result = 0;
-
-                for (const auto &detection : msg->detections)
-                {
-                    if (detection.class_id != 3)
-                    {
-                        continue; // 如果不是蓝球，就跳过
-                    }
-
-                    //如果是蓝球，那么求出最大的半径对应的目标点，目前半径是直接取x值,因为x值在取球过程中快消失的时候比较稳定
-                    // if (detection.bbox.size.x > max_radius)
-                    // {
-                        // max_radius = detection.size.x;
-                    target_point = detection.bbox.center.position.x;
-                    // }
-
-                    exist_result = 1;
-                }
-
-                // 如果检测到了R/B
-                if (exist_result)
-                {
-                    //像素中心点是320，对应球心偏左
-                    if (target_point  > 400)
-                    {
-                        packet.chasis_motor01 = -700.0f;
-                        packet.chasis_motor02 = -700.0f;
-                        packet.chasis_motor03 = -700.0f;
-                        packet.chasis_motor04 = -700.0f;
-                    }
-                    //对应球心偏右
-                    else if (target_point < 240)
-                    {
-                        packet.chasis_motor01 = 700.0f;
-                        packet.chasis_motor02 = 700.0f;
-                        packet.chasis_motor03 = 700.0f;
-                        packet.chasis_motor04 = 700.0f;
-                    }
-                    //对应球心在中间，直接向前开
-                    else 
-                    {
-                        // packet.chasis_motor01 =  700.0f;
-                        // packet.chasis_motor02 = -700.0f;
-                        // packet.chasis_motor03 =  700.0f;
-                        // packet.chasis_motor04 = -700.0f;
-                        packet.chasis_motor01 = -700.0f;
-                        packet.chasis_motor02 = 700.0f;
-                        packet.chasis_motor03 = 700.0f;
-                        packet.chasis_motor04 = -700.0f;
-                    }
-                }
-            
-                //对应只有紫球的情况
-                else
-                {
-                    packet.chasis_motor01 = 0.0f;
-                    packet.chasis_motor02 = 0.0f;
-                    packet.chasis_motor03 = 0.0f;
-                    packet.chasis_motor04 = 0.0f;
-                }
-            }
-            //如果没有检测到球
-            else{
-                packet.chasis_motor01 = 0.0f;
-                packet.chasis_motor02 = 0.0f;
-                packet.chasis_motor03 = 0.0f;
-                packet.chasis_motor04 = 0.0f;
-            }
-
-            crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
+            // crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
 
             std::vector<uint8_t> data = toVector(packet);
             // 访问发送的数据data的第一个字节

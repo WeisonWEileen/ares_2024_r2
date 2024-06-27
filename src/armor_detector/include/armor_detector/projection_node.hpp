@@ -102,7 +102,11 @@ namespace rc_auto_aim
             std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
             std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 
+            // geometry_msgs::msg::Transform cam2arm_tran_;
 
+            tf2::Transform cam2robo_tran_;
+            // geometry_msgs::msg::Transform t;
+            // tf2::Transform cam2arm_tran_;
             // std::string target_frame_;
             // std::shared_ptr<tf2_filter> tf_filter_
     };
