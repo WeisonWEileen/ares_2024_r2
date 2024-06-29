@@ -26,6 +26,7 @@
 //color image and depth image synchronize
 #include <Eigen/Dense>
 #include <camera_info_manager/camera_info_manager.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
 
 #include "message_filters/subscriber.h"
 #include "message_filters/time_synchronizer.h"
@@ -38,6 +39,8 @@
 #define BALL_RADIUS_mm 90
 #define Coefficient 0.5
 #define BALL_RADIUS_m 0.095
+
+#define TRANSLATION
 
 namespace rc_auto_aim
 {
@@ -109,6 +112,18 @@ namespace rc_auto_aim
             // tf2::Transform cam2arm_tran_;
             // std::string target_frame_;
             // std::shared_ptr<tf2_filter> tf_filter_
+
+
+            //球的rviz可视化的信息
+            visualization_msgs::msg::Marker ball_marker_;
+            visualization_msgs::msg::MarkerArray ball_marker_array_;
+            rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr ball_marker_pub_;
+
+            // 储存球的三维坐标
+            yolov8_msgs::msg::KeyPoint3DArray keypoint3d_array_;
+
+            void init_Marker();
+            void publishMarkers();
     };
 }  // namespace rc_auto_aim
 

@@ -81,7 +81,7 @@ namespace rc_serial_driver
         // aiming_point_.lifetime = rclcpp::Duration::from_seconds(0.1);
 
         // Create Subscription                                    DetectionArray
-        target_sub_ = this->create_subscription<yolov8_msgs::msg::DetectionArray>(
+        target_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
           "/cmd_vel", rclcpp::SensorDataQoS(),
           std::bind(&RCSerialDriver::sendData, this, std::placeholders::_1));
     }
@@ -178,7 +178,7 @@ namespace rc_serial_driver
     }
 
     //accept ball-tracking data, and give four motors velocity
-    void RCSerialDriver::sendData(const yolov8_msgs::msg::DetectionArray::SharedPtr msg)
+    void RCSerialDriver::sendData(const geometry_msgs::msg::Twist::SharedPtr msg)
     {
         const static std::map<std::string, uint8_t> id_unit8_map{
             {"", 0}, {"outpost", 0}, {"1", 1}, {"1", 1}, {"2", 2}, {"3", 3}, {"4", 4}, {"5", 5}, {"guard", 6}, {"base", 7}};
@@ -192,11 +192,18 @@ namespace rc_serial_driver
         {
             SendPacket packet;
             packet.chasis_vx = 1.0f;
-            packet.chasis_vx = 2.0f;
-            packet.chasis_vx = 3.0f;
-            packet.chasis_vx = 4.0f;
-            packet.chasis_vx = 5.0f;
-            packet.chasis_vx = 6.0f;
+
+            // packet.chasis_vx = 0.0f;
+            packet.chasis_vy = 0.0f;
+            packet.chasis_w = 0.0f;
+            packet.x_ball = 0.0f;
+            packet.y_ball =  0.0f;
+            packet.vaccum = 0;
+            // packet.chasis_vx = 2.0f;
+            // packet.chasis_vx = 3.0f;
+            // packet.chasis_vx = 4.0f;
+            // packet.chasis_vx = 5.0f;
+            // packet.chasis_vx = 6.0f;
 
             // //如果检测到了球(R/B,P)
             // if (num_detections > 0)
@@ -283,7 +290,8 @@ namespace rc_serial_driver
             // crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
 
             std::vector<uint8_t> data = toVector(packet);
-            // 访问发送的数据data的第一个字节
+            serial_driver_->port()->send(data);
+         // 访问发送的数据data的第一个字节
             // uint8_t first_byte = data[0];
 
             // // 访问发送的数据data的第二个字节
@@ -304,12 +312,11 @@ namespace rc_serial_driver
             // RCLCPP_INFO(this->get_logger(), "Fourth byte: %u", fourth_byte);
             // RCLCPP_INFO(this->get_logger(), "Fifth byte: %u", fifth_byte);
 
-            serial_driver_->port()->send(data);
 
-            std_msgs::msg::Float64 latency;
-            latency.data = (this->now() - msg->header.stamp).seconds() * 1000.0;
-            RCLCPP_DEBUG_STREAM(get_logger(), "Total latency: " + std::to_string(latency.data) + "ms");
-            latency_pub_->publish(latency);
+            // std_msgs::msg::Float64 latency;
+            // latency.data = (this->now() - msg->header.stamp).seconds() * 1000.0;
+            // RCLCPP_DEBUG_STREAM(get_logger(), "Total latency: " + std::to_string(latency.data) + "ms");
+            // latency_pub_->publish(latency);
         }
         catch (const std::exception &ex)
         {

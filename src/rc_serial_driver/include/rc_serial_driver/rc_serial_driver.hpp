@@ -6,7 +6,7 @@
 
 #include <tf2_ros/transform_broadcaster.h>
 
-#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <geometry_msgs/msg/twist.hpp>
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/subscription.hpp>
@@ -40,7 +40,7 @@ namespace rc_serial_driver
 
         void receiveData();
 
-        void sendData(yolov8_msgs::msg::DetectionArray::SharedPtr msg);
+        void sendData(geometry_msgs::msg::Twist::SharedPtr msg);
 
         void reopenPort();
 
@@ -71,7 +71,7 @@ namespace rc_serial_driver
         double timestamp_offset_ = 0;
         std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
-        rclcpp::Subscription<yolov8_msgs::msg::DetectionArray>::SharedPtr target_sub_;
+        rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr target_sub_;
 
         // For debug usage
         rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr latency_pub_;

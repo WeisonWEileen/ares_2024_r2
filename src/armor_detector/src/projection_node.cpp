@@ -100,8 +100,15 @@ void ProjectorNode::project_to_3d_and_publish(
   yolov8_msgs::msg::KeyPoint3DArray keypoint3d_array;
 
   // int i = 0;
-  for (auto & box : boxes_msg->detections) {
-    yolov8_msgs::msg::KeyPoint3D keypoint3d;
+
+  // 可视化的信息
+  keypoint3d_array_.data.clear();
+  ball_marker_array_.markers.clear();
+  ball_marker_.id = 0;
+
+  //@TODO 其实这里面可不可以并行加速？ 
+  for (auto & box : boxes_msg->detections)
+  {
     // 像素球心坐标(u,v)
     auto v = int(box.bbox.center.position.x + box.bbox.size.x / 2);
     auto u = int(box.bbox.center.position.y + box.bbox.size.y / 2);
@@ -122,6 +129,7 @@ void ProjectorNode::project_to_3d_and_publish(
     //@TODO 是否需要滤波？ 5邻域平均取深度值，卡尔曼滤波？
     //  为了迎合机械臂执行空间的坐标系，x轴向前，y轴向左，z轴向上
     // float x = dep_img.at<ushort>(u, v)/1000.f;
+
     float x = (dep_img.at<ushort>(u, v) + BALL_RADIUS_mm * Coefficient) / 1000.f;
     // 注意不能直接加球的半径，应该有个倾角
     float y = - x * (v - px) / fx;
@@ -134,11 +142,6 @@ void ProjectorNode::project_to_3d_and_publish(
     x *= scale;
     y *= scale;
     z *= scale;
-
-    std::cout << "--------" << std::endl;
-    std::cout << "x: " << x << " y: " << y << " z: " << z << 
-    std::endl;
-    std::cout << "--------" << std::endl;
     
     //rviz可视化frame
     geometry_msgs::msg::TransformStamped trans;
@@ -146,7 +149,6 @@ void ProjectorNode::project_to_3d_and_publish(
     geometry_msgs::msg::PointStamped ps;
 
     // @TODO 滤波器
-
     // geometry_msgs::msg::Point cam_point;
     // geometry_msgs::msg::Point arm_point;
     // tf2::Transform tf2_transform;
@@ -155,27 +157,31 @@ void ProjectorNode::project_to_3d_and_publish(
     tf2::Vector3 cam_point_tf2(x, y, z);
     tf2::Vector3 arm_point_tf2 = cam2robo_tran_ * cam_point_tf2;
 
-    // cam_point.x = x;
-    // cam_point.y = y;
-    // cam_point.z = z;
-    // arm_point = t * cam_point;
 
-    RCLCPP_INFO(
-      this->get_logger(), "arm_point: (%f, %f, %f)", arm_point_tf2.x(), arm_point_tf2.y(),
-      arm_point_tf2.z());
+    // RCLCPP_INFO(
+    //   this->get_logger(), "arm_point: (%f, %f, %f)", arm_point_tf2.x(), arm_point_tf2.y(),
+    //   arm_point_tf2.z());
+    yolov8_msgs::msg::KeyPoint3D keypoint3d;
 
-    //yolov8_msgs 发布 
+
+    ball_marker_.id++;
+    ball_marker_.pose.position.x = keypoint3d.point.x = arm_point_tf2.x();
+    ball_marker_.pose.position.y = keypoint3d.point.y = arm_point_tf2.y();
+    ball_marker_.pose.position.z = keypoint3d.point.z = arm_point_tf2.z();
+
+    //yolov8_msgs 发布
     // keypoint3d.id = box.class_id;
-    // keypoint3d.score = box.confidence;
+    // // keypoint3d.score = box.confidence;
     // keypoint3d.point.x = x;
     // keypoint3d.point.y = y;
     // keypoint3d.point.z = z;
-    // keypoint3d_array.data.emplace_back(keypoint3d);
+    keypoint3d_array_.data.emplace_back(keypoint3d);
+    ball_marker_array_.markers.emplace_back(ball_marker_);
   }
   // 3d坐标发布
-  // keypoint3d_pub_->publish(keypoint3d_array);
+  keypoint3d_pub_->publish(keypoint3d_array);
+  publishMarkers();
 }
-
 
   void ProjectorNode::make_camera_roboarm_tranform(){
     double roll, pitch, yaw, x, y, z;
@@ -190,16 +196,11 @@ void ProjectorNode::project_to_3d_and_publish(
       this->get_logger(), "The input Param: roll=%f, pitch=%f, yaw=%f, x=%f, y=%f, z=%f", roll, pitch,
       yaw, x, y, z);
 
-    // geometry_msgs::msg::Transform t;
-
-    // RCLCPP_INFO(this->get_logger(), "Ready to create tf2 static broadcaster.");
-    // t.header.stamp = this->get_clock()->now();
-    // t.header.frame_id = "roboarm_base";
-    // t.child_frame_id = "cam_realsense";
 
     geometry_msgs::msg::Transform t;
 
-    t.translation.x = x;
+    //offset
+    t.translation.x = x-0.03;
     t.translation.y = y;
     t.translation.z = z;
 
@@ -214,7 +215,6 @@ void ProjectorNode::project_to_3d_and_publish(
 
     tf2::fromMsg(t, cam2robo_tran_);
     // tf2::fromMsg(t.tranform, cam2arm_tran_);
-
     // tf_static_broadcaster_->sendTransform(t);
 }
 
@@ -229,6 +229,40 @@ void ProjectorNode::init_tf2(){
   // tf_filter_ = std::make_shared<tf2_filter>(
   //   armors_sub_, *tf2_buffer_, target_frame_, 10, this->get_node_logging_interface(),
   //   this->get_node_clock_interface(), std::chrono::duration<int>(1));
+}
+
+void ProjectorNode::init_Marker()
+{
+  ball_marker_.ns = "armors";
+  ball_marker_.action = visualization_msgs::msg::Marker::ADD;
+  ball_marker_.type = visualization_msgs::msg::Marker::SPHERE;
+  ball_marker_.scale.x = 0.05;
+  ball_marker_.scale.z = 0.125;
+  ball_marker_.color.a = 1.0;
+  ball_marker_.color.g = 0.5;
+  ball_marker_.color.b = 1.0;
+  // 球的转向没有什么意义
+  ball_marker_.pose.orientation.x = 0.0;
+  ball_marker_.pose.orientation.y = 0.0;
+  ball_marker_.pose.orientation.z = 0.0;
+  ball_marker_.pose.orientation.w = 1.0;
+  ball_marker_.lifetime = rclcpp::Duration::from_seconds(0.1);
+
+  ball_marker_pub_= this->create_publisher<visualization_msgs::msg::MarkerArray>(
+    "/detector/marker", 10);
+}
+
+void ProjectorNode::publishMarkers(){
+  // @TODO没懂这里的逻辑
+  using Marker = visualization_msgs::msg::Marker;
+  ball_marker_.action = keypoint3d_array_.data.empty() ? Marker::DELETE : Marker::ADD;
+  ball_marker_array_.markers.emplace_back(ball_marker_);
+  ball_marker_pub_->publish(ball_marker_array_);
+}
+
+  void
+  publish_Marker()
+{
 }
 }
 #include "rclcpp_components/register_node_macro.hpp"

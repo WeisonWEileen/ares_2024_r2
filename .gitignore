@@ -11,3 +11,5 @@ src/CV_test
 *.engine
 test
 test.cpp
+
+src/ultralytics

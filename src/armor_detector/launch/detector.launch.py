@@ -42,6 +42,7 @@ def generate_launch_description():
         # parameters=[config],
     )
 
+    #第二版r2的底部摄像头 
     carry_state_node = Node(
         package="armor_detector",
         executable="rc_carry_state_node",
