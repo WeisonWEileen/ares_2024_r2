@@ -4,9 +4,11 @@ ros2 launch realsense2_camera rs_launch.py align_depth.enable:=true
 '''
 ### 第二步，启动 yolov8 启动节点
 '''
-ros2 run armor_detector rc_armor_detector_node 
+ros2 run rc_detector rc_detector_node 
 '''
 ## 第三步，启动投影节点
 '''
-ros2 run armor_detector rc_armor_projector_node
+ros2 run rc_detector rc_armor_projector_node
 '''
+
+rc_detector

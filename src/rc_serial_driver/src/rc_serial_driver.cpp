@@ -26,10 +26,6 @@
 
 namespace rc_serial_driver
 {
-    float target_point = 0;                              // 当前目标的像素点的x值
-    // static int exist_result = 0;                         // 是否存在目标（是否存在蓝球或者红球，蓝球对应的id是3，红球对应的id是2）
-    // static size_t num_detections = 0; // 识别到的蓝球的个数
-    // static float max_radius = 0;  // 记录球的最大半径
     RCSerialDriver::RCSerialDriver(const rclcpp::NodeOptions &options)
         : Node("rc_serial_driver", options),
           owned_ctx_{new IoContext(2)},
@@ -48,7 +44,8 @@ namespace rc_serial_driver
         // marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("/aiming_point", 10);
 
         // Detect parameter client
-        detector_param_client_ = std::make_shared<rclcpp::AsyncParametersClient>(this, "armor_detector");
+        detector_param_client_ =
+          std::make_shared<rclcpp::AsyncParametersClient>(this, "rc_detector");
 
         // Tracker reset service client
         reset_tracker_client_ = this->create_client<std_srvs::srv::Trigger>("/tracker/reset");
@@ -291,32 +288,7 @@ namespace rc_serial_driver
 
             std::vector<uint8_t> data = toVector(packet);
             serial_driver_->port()->send(data);
-         // 访问发送的数据data的第一个字节
-            // uint8_t first_byte = data[0];
 
-            // // 访问发送的数据data的第二个字节
-            // uint8_t second_byte = data[1];
-
-            // // 访问发送的数据data的第三个字节
-            // uint8_t third_byte = data[2];
-
-            // // 访问发送的数据data的第四个字节
-            // uint8_t fourth_byte = data[3];
-
-            // // 访问发送的数据data的第五个字节
-            // uint8_t fifth_byte = data[4];
-
-            // RCLCPP_INFO(this->get_logger(), "First byte: %hhu", first_byte);
-            // RCLCPP_INFO(this->get_logger(), "Second byte: %u", second_byte);
-            // RCLCPP_INFO(this->get_logger(), "Third byte: %u", third_byte);
-            // RCLCPP_INFO(this->get_logger(), "Fourth byte: %u", fourth_byte);
-            // RCLCPP_INFO(this->get_logger(), "Fifth byte: %u", fifth_byte);
-
-
-            // std_msgs::msg::Float64 latency;
-            // latency.data = (this->now() - msg->header.stamp).seconds() * 1000.0;
-            // RCLCPP_DEBUG_STREAM(get_logger(), "Total latency: " + std::to_string(latency.data) + "ms");
-            // latency_pub_->publish(latency);
         }
         catch (const std::exception &ex)
         {

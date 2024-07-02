@@ -1,35 +1,4 @@
-#include <ament_index_cpp/get_package_share_directory.hpp>
-#include <image_transport/image_transport.hpp>
-#include <image_transport/publisher.hpp>
-#include <image_transport/subscriber_filter.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <rclcpp/duration.hpp>
-#include <rclcpp/qos.hpp>
-#include <sensor_msgs/msg/camera_info.hpp>
-#include <sensor_msgs/msg/image.hpp>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-
-// STD
-#include <message_filters/subscriber.h>
-#include <message_filters/sync_policies/approximate_time.h>
-#include <message_filters/time_synchronizer.h>
-
-#include <algorithm>
-#include <ament_index_cpp/get_package_share_directory.hpp>
-#include <chrono>
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
 #include <boost/algorithm/string/join.hpp>
-
-#include "armor_detector/yolov8.hpp"
-#include "yolov8_msgs/msg/detection_array.hpp"
-#include "yolov8_msgs/msg/bounding_box2_d.hpp"
-#include "yolov8_msgs/msg/key_point3_d.hpp"
-#include "yolov8_msgs/msg/key_point3_d_array.hpp"
-
 #include "rc_decision/rim_state.hpp"
 
 
@@ -39,9 +8,42 @@ RimStateNode::RimStateNode(const rclcpp::NodeOptions & options) : Node("rimstate
 {
   RCLCPP_INFO(this->get_logger(), "RimStateNode has been started.");
 
+  // detect_result_sub_ = this->create_subscription<yolov8_msgs::msg::DetectionArray>(
+  //   "/detector/balls", rclcpp::SensorDataQoS(),
+  //   std::bind(&RimStateNode::detectResultCallback, this, std::placeholders::_1));
+
   detect_result_sub_ = this->create_subscription<yolov8_msgs::msg::DetectionArray>(
-    "/detector/balls", rclcpp::SensorDataQoS(),
-    std::bind(&RimStateNode::detectResultCallback, this, std::placeholders::_1));
+    "/detector/balls", 10, [this](yolov8_msgs::msg::DetectionArray::SharedPtr detect_result_msg) {
+
+      // 看框的数量是不是有5个
+      int count = std::count_if(
+        detect_result_msg->detections.begin(), detect_result_msg->detections.end(),
+        [](const yolov8_msgs::msg::Detection & detection) { return detection.class_id == 0; });
+
+      // 不够就跳过
+      if(count != 5){
+        RCLCPP_INFO(this->get_logger(), "Rim nums: %d", count);
+        rim_status_arr_[0] = -1;
+        return;
+      }
+
+      // 深拷贝一份detect_result_msg，防止在回调函数中对detect_result_msg进行修改，影响在projeco_node中对2D检测结果的使用
+      auto detect_result = std::make_shared<yolov8_msgs::msg::DetectionArray>(*detect_result_msg);
+
+      // 分开rim和ball，middle之前的是rim， middle之后的是ball，方便计算
+      auto middle = std::partition(
+        detect_result_msg->detections.begin(), detect_result_msg->detections.end(),
+        [](const yolov8_msgs::msg::Detection & detection) { return detection.class_id == 0; });
+
+      // 对rim部分按照center.x从小到大排序
+      std::sort(
+        detect_result_msg->detections.begin(), middle,
+        [](const yolov8_msgs::msg::Detection & a, const yolov8_msgs::msg::Detection & b) {
+          return a.bbox.center.position.x < b.bbox.center.position.x;
+        });
+
+      auto num_rim = std::distance(detect_result_msg->detections.begin(), middle);
+    });
 }
 
 void RimStateNode::detectResultCallback(
@@ -50,98 +52,89 @@ void RimStateNode::detectResultCallback(
   rim_state_calculator(detect_result_msg);
 }
 
+
+
 void RimStateNode::rim_state_calculator(const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & detect_result_msg)
 {
-//for 循环实现
-//   for(auto & box boxes_msg->detections){
+  // //for 循环实现
+  // //   for(auto & box boxes_msg->detections){
 
-//     if(box.class_id != 0){
-//       continue;
-//     }
-//   }
-  // std::partition实现
-//   @TODO 要不要把一些变量变为成员变量，优化效率？
+  // //     if(box.class_id != 0){
+  // //       continue;
+  // //     }
+  // //   }
+  //   // std::partition实现
+  // //   @TODO 要不要把一些变量变为成员变量，优化效率？
 
-std::fill(rim_state_array_, rim_state_array_ + 10, O_0_E_0);
+  // // std::fill(rim_state_array_, rim_state_array_ + 10, O_0_E_0);
 
-auto detect_result = std::make_shared<yolov8_msgs::msg::DetectionArray>(*detect_result_msg);
-// 分开rim和ball，middle之前的是rim， middle之后的是ball
-auto middle = std::partition(
-  detect_result->detections.begin(), detect_result->detections.end(),
-  [](const yolov8_msgs::msg::Detection & detection) { return detection.class_id == 0; });
+  // auto detect_result = std::make_shared<yolov8_msgs::msg::DetectionArray>(*detect_result_msg);
 
-// 对rim部分按照center.x从小到大排序
-std::sort(
-  detect_result->detections.begin(), middle,
-  [](const yolov8_msgs::msg::Detection & a, const yolov8_msgs::msg::Detection & b) {
-    return a.bbox.center.position.x < b.bbox.center.position.x;
-  });
+  // // 分开rim和ball，middle之前的是rim， middle之后的是ball，方便计算
+  // auto middle = std::partition(
+  //   detect_result->detections.begin(), detect_result->detections.end(),
+  //   [](const yolov8_msgs::msg::Detection & detection) { return detection.class_id == 0; });
 
-auto num_rim = std::distance(detect_result->detections.begin(), middle);
+  // // 对rim部分按照center.x从小到大排序
+  // std::sort(
+  //   detect_result->detections.begin(), middle,
+  //   [](const yolov8_msgs::msg::Detection & a, const yolov8_msgs::msg::Detection & b) {
+  //     return a.bbox.center.position.x < b.bbox.center.position.x;
+  //   });
+    
+  // auto num_rim = std::distance(detect_result->detections.begin(), middle);
 
-RCLCPP_INFO(this->get_logger(), "Rim nums: %ld", num_rim);
+  // RCLCPP_INFO(this->get_logger(), "Rim nums: %ld", num_rim);
 
-// rim less than 5，没有识别全
 
-// if (num_rim != 5) {
-//   RCLCPP_INFO(this->get_logger(), "Rim less than 5");
-//   return;
-// }
+  // //   用于打印5个rim状态的字符串
+  // std::vector<std::string> state_strings;
 
-// Now, [begin, middle) contains detections with class_id == 0 (rim),
-// and [middle, end) contains detections with class_id == 1 and 3 (red and blue ).
+  // for (auto i = detect_result->detections.begin(); i != middle; ++i) {
+  //   int num_our_side = 0;
+  //   int num_enemy_side = 0;
 
-// Calculate IOU for each pair of detections
-// 遍历rim
+  //     // 遍历ball
+  //     for (auto j = middle; j != detect_result->detections.end(); ++j) {
+  //         double iou = bbox_iou(i->bbox, j->bbox);
+  //         if (iou > bbox_thres_) {
+  //           if (j->class_id == 1) {
+  //               num_our_side += 1;
+  //           } else {
+  //               num_enemy_side += 1;
+  //           }
+  //         }
+  //     }
+  //     auto index = std::distance(i, detect_result->detections.begin());
+  //     // RCLCPP_INFO(this->get_logger(), "index : %d", result_string.c_str());
 
-//   用于打印5个rim状态的字符串
-std::vector<std::string> state_strings;
-
-for (auto i = detect_result->detections.begin(); i != middle; ++i) {
-  int num_our_side = 0;
-  int num_enemy_side = 0;
-
-    // 遍历ball
-    for (auto j = middle; j != detect_result->detections.end(); ++j) {
-        double iou = bbox_iou(i->bbox, j->bbox);
-        if (iou > bbox_thres_) {
-        if (j->class_id == 1) {
-            num_our_side += 1;
-        } else {
-            num_enemy_side += 1;
-        }
-        }
-    }
-    auto index = std::distance(i, detect_result->detections.begin());
-    // RCLCPP_INFO(this->get_logger(), "index : %d", result_string.c_str());
-
-    // 记录的同时并且存储打印数据
-    if (num_our_side == 0 && num_enemy_side == 0) {
-        rim_state_array_[index] = O_0_E_0;
-        state_strings.push_back("O_0_E_0");
-    } else if (num_our_side == 1 && num_enemy_side == 0) {
-        rim_state_array_[index] = O_1_E_0;
-        state_strings.push_back("O_1_E_0");
-    } else if (num_our_side == 0 && num_enemy_side == 1) {
-        rim_state_array_[index] = O_0_E_1;
-        state_strings.push_back("O_0_E_1");
-    } else if (num_our_side == 2 && num_enemy_side == 0) {
-        rim_state_array_[index] = O_2_E_0;
-        state_strings.push_back("O_2_E_0");
-    } else if (num_our_side == 1 && num_enemy_side == 1) {
-        rim_state_array_[index] = O_1_E_1;
-        state_strings.push_back("O_1_E_1");
-    } else if (num_our_side == 0 && num_enemy_side == 2) {
-        rim_state_array_[index] = O_0_E_2;
-        state_strings.push_back("O_0_E_2");
-    } else {
-        rim_state_array_[index] = FULL;
-        state_strings.push_back("O_F_E_F");
-    }
-}
-  std::string result_string =
-    boost::algorithm::join(state_strings, " ");  
-  RCLCPP_INFO(this->get_logger(), "Rim states: %s", result_string.c_str());
+  //     // 记录的同时并且存储打印数据
+  //     if (num_our_side == 0 && num_enemy_side == 0) {
+  //         rim_state_array_[index] = O_0_E_0;
+  //         state_strings.push_back("O_0_E_0");
+  //     } else if (num_our_side == 1 && num_enemy_side == 0) {
+  //         rim_state_array_[index] = O_1_E_0;
+  //         state_strings.push_back("O_1_E_0");
+  //     } else if (num_our_side == 0 && num_enemy_side == 1) {
+  //         rim_state_array_[index] = O_0_E_1;
+  //         state_strings.push_back("O_0_E_1");
+  //     } else if (num_our_side == 2 && num_enemy_side == 0) {
+  //         rim_state_array_[index] = O_2_E_0;
+  //         state_strings.push_back("O_2_E_0");
+  //     } else if (num_our_side == 1 && num_enemy_side == 1) {
+  //         rim_state_array_[index] = O_1_E_1;
+  //         state_strings.push_back("O_1_E_1");
+  //     } else if (num_our_side == 0 && num_enemy_side == 2) {
+  //         rim_state_array_[index] = O_0_E_2;
+  //         state_strings.push_back("O_0_E_2");
+  //     } else {
+  //         rim_state_array_[index] = FULL;
+  //         state_strings.push_back("O_F_E_F");
+  //     }
+  // }
+  //   std::string result_string =
+  //     boost::algorithm::join(state_strings, " ");  
+  //   RCLCPP_INFO(this->get_logger(), "Rim states: %s", result_string.c_str());
 }
 
 float RimStateNode::bbox_iou(

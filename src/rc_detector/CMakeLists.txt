@@ -20,7 +20,7 @@ if(USE_TENSORRT)
     set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
 endif()
 
-project(armor_detector)
+project(rc_detector)
 
 # control whether to use onnx or tensorrt accelrate must be seletected
 if(USE_ONNX)
@@ -118,13 +118,13 @@ endif()
 
 # ADD EXECUTABLE NODES
 rclcpp_components_register_node(${PROJECT_NAME}
-  PLUGIN rc_auto_aim::InferencerNode
-  EXECUTABLE rc_armor_detector_node
+  PLUGIN rc_detector::InferencerNode
+  EXECUTABLE rc_detector_node
 )
 
 rclcpp_components_register_node(${PROJECT_NAME}
-  PLUGIN rc_auto_aim::ProjectorNode
-  EXECUTABLE rc_armor_projector_node
+  PLUGIN rc_detector::ProjectorNode
+  EXECUTABLE rc_projector_node
 )
 
 add_executable(rc_carry_state_node src/carry_state_node.cpp)

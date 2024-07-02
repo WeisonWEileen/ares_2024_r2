@@ -13,8 +13,8 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
-#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "geometry_msgs/msg/transform.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 // STD
 #include <message_filters/subscriber.h>
@@ -31,14 +31,14 @@
 #include <string>
 #include <vector>
 
-#include "armor_detector/projection_node.hpp"
+#include "rc_detector/projection_node.hpp"
 #include "tf2_ros/static_transform_broadcaster.h"
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_ros/transform_listener.h"
 #include "yolov8_msgs/msg/detection_array.hpp"
 #include "yolov8_msgs/msg/key_point3_d.hpp"
 #include "yolov8_msgs/msg/key_point3_d_array.hpp"
-namespace rc_auto_aim
+namespace rc_detector
 {
 ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
 : Node("armor_projection_node"),
@@ -47,8 +47,8 @@ ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
 {
   // test
   this->declare_parameter<double>("roll", 0.0);
-  this->declare_parameter<double>("pitch", PI/4);
-  this->declare_parameter<double>("yaw", PI/4);
+  this->declare_parameter<double>("pitch", PI / 4);
+  this->declare_parameter<double>("yaw", PI / 4);
 
   this->declare_parameter<double>("x", 0.256);
   this->declare_parameter<double>("y", -0.2385);
@@ -60,7 +60,7 @@ ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
 
   RCLCPP_INFO(this->get_logger(), "ProjetionNode has been started.");
 
-  //从yaml中获取外参矩阵 
+  //从yaml中获取外参矩阵
   RCLCPP_INFO(this->get_logger(), "Ready to create camera_info sub.");
   aligned_depth_caminfo_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
     "/camera/aligned_depth_to_color/camera_info", rclcpp::SensorDataQoS(),
@@ -80,6 +80,7 @@ ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
     &ProjectorNode::keypoint_imageCallback, this, std::placeholders::_1, std::placeholders::_2));
 
   init_tf2();
+  init_Marker();
 }
 
 void ProjectorNode::keypoint_imageCallback(
@@ -89,14 +90,13 @@ void ProjectorNode::keypoint_imageCallback(
   project_to_3d_and_publish(box_msg, dep_img_msg);
 }
 
-
 void ProjectorNode::project_to_3d_and_publish(
   const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & boxes_msg,
   const sensor_msgs::msg::Image::ConstSharedPtr & dep_img_msg)
 {
   auto dep_img = cv_bridge::toCvCopy(dep_img_msg, sensor_msgs::image_encodings::TYPE_16UC1)->image;
 
-//   auto dep_img = cv_bridge::toCvShare(dep_img_msg)->image;
+  //   auto dep_img = cv_bridge::toCvShare(dep_img_msg)->image;
   yolov8_msgs::msg::KeyPoint3DArray keypoint3d_array;
 
   // int i = 0;
@@ -106,9 +106,8 @@ void ProjectorNode::project_to_3d_and_publish(
   ball_marker_array_.markers.clear();
   ball_marker_.id = 0;
 
-  //@TODO 其实这里面可不可以并行加速？ 
-  for (auto & box : boxes_msg->detections)
-  {
+  //@TODO 其实这里面可不可以并行加速？
+  for (auto & box : boxes_msg->detections) {
     // 像素球心坐标(u,v)
     auto v = int(box.bbox.center.position.x + box.bbox.size.x / 2);
     auto u = int(box.bbox.center.position.y + box.bbox.size.y / 2);
@@ -132,17 +131,16 @@ void ProjectorNode::project_to_3d_and_publish(
 
     float x = (dep_img.at<ushort>(u, v) + BALL_RADIUS_mm * Coefficient) / 1000.f;
     // 注意不能直接加球的半径，应该有个倾角
-    float y = - x * (v - px) / fx;
-    float z = - x * (u - py) / fy;
+    float y = -x * (v - px) / fx;
+    float z = -x * (u - py) / fy;
 
     float length = sqrt(x * x + y * y + z * z);
     float scale = (BALL_RADIUS_m + length) / length;
 
-
     x *= scale;
     y *= scale;
     z *= scale;
-    
+
     //rviz可视化frame
     geometry_msgs::msg::TransformStamped trans;
     // 求出球的坐标点
@@ -157,17 +155,20 @@ void ProjectorNode::project_to_3d_and_publish(
     tf2::Vector3 cam_point_tf2(x, y, z);
     tf2::Vector3 arm_point_tf2 = cam2robo_tran_ * cam_point_tf2;
 
-
     // RCLCPP_INFO(
     //   this->get_logger(), "arm_point: (%f, %f, %f)", arm_point_tf2.x(), arm_point_tf2.y(),
     //   arm_point_tf2.z());
     yolov8_msgs::msg::KeyPoint3D keypoint3d;
 
+    // ball_marker_.id++;
+    // ball_marker_.pose.position.x = keypoint3d.point.x = arm_point_tf2.x();
+    // ball_marker_.pose.position.y = keypoint3d.point.y = arm_point_tf2.y();
+    // ball_marker_.pose.position.z = keypoint3d.point.z = arm_point_tf2.z();
 
-    ball_marker_.id++;
-    ball_marker_.pose.position.x = keypoint3d.point.x = arm_point_tf2.x();
-    ball_marker_.pose.position.y = keypoint3d.point.y = arm_point_tf2.y();
-    ball_marker_.pose.position.z = keypoint3d.point.z = arm_point_tf2.z();
+    // ball_marker_.id++;
+    keypoint3d.point.x = arm_point_tf2.x();
+    keypoint3d.point.y = arm_point_tf2.y();
+    keypoint3d.point.z = arm_point_tf2.z();
 
     //yolov8_msgs 发布
     // keypoint3d.id = box.class_id;
@@ -183,42 +184,43 @@ void ProjectorNode::project_to_3d_and_publish(
   publishMarkers();
 }
 
-  void ProjectorNode::make_camera_roboarm_tranform(){
-    double roll, pitch, yaw, x, y, z;
-    this->get_parameter("roll", roll);
-    this->get_parameter("pitch", pitch);
-    this->get_parameter("yaw", yaw);
-    this->get_parameter("x", x);
-    this->get_parameter("y", y);
-    this->get_parameter("z", z);
+void ProjectorNode::make_camera_roboarm_tranform()
+{
+  double roll, pitch, yaw, x, y, z;
+  this->get_parameter("roll", roll);
+  this->get_parameter("pitch", pitch);
+  this->get_parameter("yaw", yaw);
+  this->get_parameter("x", x);
+  this->get_parameter("y", y);
+  this->get_parameter("z", z);
 
-    RCLCPP_INFO(
-      this->get_logger(), "The input Param: roll=%f, pitch=%f, yaw=%f, x=%f, y=%f, z=%f", roll, pitch,
-      yaw, x, y, z);
+  RCLCPP_INFO(
+    this->get_logger(), "The input Param: roll=%f, pitch=%f, yaw=%f, x=%f, y=%f, z=%f", roll, pitch,
+    yaw, x, y, z);
 
+  geometry_msgs::msg::Transform t;
 
-    geometry_msgs::msg::Transform t;
+  //offset
+  t.translation.x = x - 0.03;
+  t.translation.y = y;
+  t.translation.z = z;
 
-    //offset
-    t.translation.x = x-0.03;
-    t.translation.y = y;
-    t.translation.z = z;
+  tf2::Quaternion q;
+  // tf2::Quaternion q2;
+  q.setRPY(roll, pitch, yaw);
 
-    tf2::Quaternion q;
-    // tf2::Quaternion q2;
-    q.setRPY(roll, pitch, yaw);
+  t.rotation.x = q.x();
+  t.rotation.y = q.y();
+  t.rotation.z = q.z();
+  t.rotation.w = q.w();
 
-    t.rotation.x = q.x();
-    t.rotation.y = q.y();
-    t.rotation.z = q.z();
-    t.rotation.w = q.w();
-
-    tf2::fromMsg(t, cam2robo_tran_);
-    // tf2::fromMsg(t.tranform, cam2arm_tran_);
-    // tf_static_broadcaster_->sendTransform(t);
+  tf2::fromMsg(t, cam2robo_tran_);
+  // tf2::fromMsg(t.tranform, cam2arm_tran_);
+  // tf_static_broadcaster_->sendTransform(t);
 }
 
-void ProjectorNode::init_tf2(){
+void ProjectorNode::init_tf2()
+{
   // tf2 initialization
   tf_static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
   this->make_camera_roboarm_tranform();
@@ -248,11 +250,12 @@ void ProjectorNode::init_Marker()
   ball_marker_.pose.orientation.w = 1.0;
   ball_marker_.lifetime = rclcpp::Duration::from_seconds(0.1);
 
-  ball_marker_pub_= this->create_publisher<visualization_msgs::msg::MarkerArray>(
-    "/detector/marker", 10);
+  ball_marker_pub_ =
+    this->create_publisher<visualization_msgs::msg::MarkerArray>("/detector/marker", 10);
 }
 
-void ProjectorNode::publishMarkers(){
+void ProjectorNode::publishMarkers()
+{
   // @TODO没懂这里的逻辑
   using Marker = visualization_msgs::msg::Marker;
   ball_marker_.action = keypoint3d_array_.data.empty() ? Marker::DELETE : Marker::ADD;
@@ -260,14 +263,11 @@ void ProjectorNode::publishMarkers(){
   ball_marker_pub_->publish(ball_marker_array_);
 }
 
-  void
-  publish_Marker()
-{
-}
-}
+void publish_Marker() {}
+}  // namespace rc_detector
 #include "rclcpp_components/register_node_macro.hpp"
 
 // Register the component with class_loader.
 // This acts as a sort of entry point, allowing the component to be discoverable when its library
 // is being loaded into a running process.
-RCLCPP_COMPONENTS_REGISTER_NODE(rc_auto_aim::ProjectorNode)
+RCLCPP_COMPONENTS_REGISTER_NODE(rc_detector::ProjectorNode)

@@ -26,8 +26,8 @@ def generate_launch_description():
         executable="component_container",  # This name must match your CMakelist file
         composable_node_descriptions=[
             ComposableNode(
-                package="armor_detector",
-                plugin="rc_auto_aim::InferencerNode",
+                package="rc_detector",
+                plugin="rc_detector::InferencerNode",
                 name="detector_node",
                 parameters=[configParams],
             )

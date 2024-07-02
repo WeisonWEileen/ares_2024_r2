@@ -1,3 +1,0 @@
-std_msgs/Header header
-geometry_msgs/Point32 center_pixel_point
-float32 radius

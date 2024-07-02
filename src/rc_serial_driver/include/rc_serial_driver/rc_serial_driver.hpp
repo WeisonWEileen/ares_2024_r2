@@ -21,7 +21,6 @@
 #include <thread>
 #include <vector>
 
-#include "auto_aim_interfaces/msg/target.hpp"
 #include "yolov8_msgs/msg/detection_array.hpp"
 
 

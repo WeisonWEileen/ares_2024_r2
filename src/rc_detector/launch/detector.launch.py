@@ -11,7 +11,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     config = os.path.join(
-        get_package_share_directory("armor_detector"), "config", "detector.yaml"
+        get_package_share_directory("rc_detector"), "config", "detector.yaml"
     )
 
     # realsense_launch = IncludeLaunchDescription(
@@ -24,9 +24,9 @@ def generate_launch_description():
     # )
 
     rc_detector_node = Node(
-        package="armor_detector",
-        executable="rc_armor_detector_node",
-        name="rc_armor_detector_node",
+        package="rc_detector",
+        executable="rc_rc_detector_node",
+        name="rc_detector_node",
         output="screen",
         emulate_tty=True,
         parameters=[config],
@@ -34,7 +34,7 @@ def generate_launch_description():
     )
 
     rc_projector_node = Node(
-        package="armor_detector",
+        package="rc_detector",
         executable="rc_armor_projector_node",
         namespace="",
         output="screen",
@@ -42,9 +42,9 @@ def generate_launch_description():
         # parameters=[config],
     )
 
-    #第二版r2的底部摄像头 
+    # 第二版r2的底部摄像头
     carry_state_node = Node(
-        package="armor_detector",
+        package="rc_detector",
         executable="rc_carry_state_node",
         namespace="",
         output="screen",

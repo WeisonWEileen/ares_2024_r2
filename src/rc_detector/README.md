@@ -11,7 +11,7 @@
 ## 使用欧拉角表示的齐次变换
 调参，$\pi=$`0.78539816339`
 ```
-ros2 run armor_detector rc_armor_projector_node --ros-args -p roll:=0.0 -p pitch:=0.785398163 -p yaw:=0.785398163 -p x:=0.315 -p y:=-0.2 -p z:=0.2
+ros2 run rc_detector rc_projector_node --ros-args -p roll:=0.0 -p pitch:=0.785398163 -p yaw:=0.785398163 -p x:=0.315 -p y:=-0.2 -p z:=0.2
 ```
 
 ## 查看球部坐标坐标系和机械臂坐标的转换矩阵

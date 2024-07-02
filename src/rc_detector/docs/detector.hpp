@@ -7,14 +7,12 @@
 
 // #include <opencv2/core.hpp>
 // #include <opencv2/core/types.hpp>
-// #include <armor_detector/inference.h>
+// #include <rc_detector/inference.h>
 // #include <memory>
 
+// // #include
 
-
-// // #include 
-
-// namespace rc_auto_aim{
+// namespace rc_detector{
 //   class Detector{
 //     public:
 //       Inference inference;

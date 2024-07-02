@@ -7,7 +7,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake_auto REQUIRED)
-# find_package(armor_detector REQUIRED)
+# find_package(rc_detector REQUIRED)
 # find_package(v4l2_camera REQUIRED)
 # find_package(rc_serial_driver REQUIRED)
 

@@ -25,42 +25,39 @@
 #include <string>
 #include <vector>
 
-#include "armor_detector/inferencer.h"
-#include "armor_detector/inferencer_node.hpp"
+#include "rc_detector/common.hpp"
+#include "rc_detector/inferencer.h"
+#include "rc_detector/inferencer_node.hpp"
+#include "rc_detector/yolov8.hpp"
 #include "yolov8_msgs/msg/detection_array.hpp"
 #include "yolov8_msgs/msg/key_point3_d.hpp"
 #include "yolov8_msgs/msg/key_point3_d_array.hpp"
 
-#include "armor_detector/yolov8.hpp"
-#include "armor_detector/common.hpp"
-
-namespace rc_auto_aim
+namespace rc_detector
 {
 //message_filter 不能使用赋值运算符，因此放在这里赋予话题，初始化
 InferencerNode::InferencerNode(const rclcpp::NodeOptions & options)
-: Node("armor_detector_node"),
-  count_(0)
+: Node("rc_inferencer_node"), count_(0)
 {
   RCLCPP_INFO(this->get_logger(), "InferencerNode has been started.");
+
   getParams();
 
   rgb_image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
     cam_rgb_topic_, rclcpp::SensorDataQoS(),
     std::bind(&InferencerNode::imageCallback, this, std::placeholders::_1));
-    
+
   balls_pub_ = this->create_publisher<yolov8_msgs::msg::DetectionArray>("/detector/balls", 10);
   inferencer_ = initInferencer();
 
-
   //发布图像可视化
-  if(debug_){
-  RCLCPP_INFO(this->get_logger(), "ready to create bounding box drawer");
-  result_pub_ = image_transport::create_publisher(this, "/detector/result");
+  if (debug_) {
+    RCLCPP_INFO(this->get_logger(), "ready to create bounding box drawer");
+    result_pub_ = image_transport::create_publisher(this, "/detector/result");
   }
 }
 
-void InferencerNode::imageCallback(
-  const sensor_msgs::msg::Image::ConstSharedPtr rgb_img_msg)
+void InferencerNode::imageCallback(const sensor_msgs::msg::Image::ConstSharedPtr rgb_img_msg)
 {
   // float[] current_pixel_radius;
   RCLCPP_INFO(this->get_logger(), "Callback");
@@ -73,7 +70,7 @@ std::unique_ptr<Inference> InferencerNode::initInferencer()
 {
   // @TODO 格式化标签读取，参考陈君实现
 
-  auto pkg_path = ament_index_cpp::get_package_share_directory("armor_detector");
+  auto pkg_path = ament_index_cpp::get_package_share_directory("rc_detector");
   // auto model_path = pkg_path + "/model/2024_1000_pict_480_640.onnx";
   auto model_path = pkg_path + "/model/6_20_yolov8m.onnx";
   auto detector =
@@ -84,8 +81,7 @@ std::unique_ptr<Inference> InferencerNode::initInferencer()
 //create unique inference object to detect potiential ball
 std::unique_ptr<YOLOv8> InferencerNode::initInferencer()
 {
-
-  auto pkg_path = ament_index_cpp::get_package_share_directory("armor_detector");
+  auto pkg_path = ament_index_cpp::get_package_share_directory("rc_detector");
   auto model_path = pkg_path + "/model/2024_1000.engine";
   auto detector = std::make_unique<YOLOv8>(model_path);
   detector->make_pipe(true);
@@ -94,8 +90,7 @@ std::unique_ptr<YOLOv8> InferencerNode::initInferencer()
 
 #endif
 //run inference to detect
-void InferencerNode::detectBalls(
-  const sensor_msgs::msg::Image::ConstSharedPtr & rgb_img_msg)
+void InferencerNode::detectBalls(const sensor_msgs::msg::Image::ConstSharedPtr & rgb_img_msg)
 {
   //头文件对其，后面用于匹配深度图
   //covert ros img msg to cv::Mat
@@ -112,7 +107,7 @@ void InferencerNode::detectBalls(
   boxes_msg_ = convert_to_msg(output_);
   boxes_msg_.header = rgb_img_msg->header;
   //publish
-  result_pub_.publish(cv_bridge::CvImage(rgb_img_msg->header, "bgr8", rgb_img_).toImageMsg()); 
+  result_pub_.publish(cv_bridge::CvImage(rgb_img_msg->header, "bgr8", rgb_img_).toImageMsg());
   balls_pub_->publish(boxes_msg_);
 
 #elif defined TENSORRT
@@ -134,9 +129,7 @@ void InferencerNode::detectBalls(
 #endif
 }
 
-
-  void
-  InferencerNode::createDebugPublishers()
+void InferencerNode::createDebugPublishers()
 {
   result_pub_ = image_transport::create_publisher(this, "/detector/result");
 }
@@ -166,7 +159,7 @@ void InferencerNode::visualizeBoxes(
     //   cv::Scalar(0, 0, 0), 2, 0);
   }
 
-}  // namespace rc_auto_aim
+}  // namespace rc_detector
 
 #ifdef ONNX
 yolov8_msgs::msg::DetectionArray InferencerNode::convert_to_msg(
@@ -174,7 +167,7 @@ yolov8_msgs::msg::DetectionArray InferencerNode::convert_to_msg(
 {
   yolov8_msgs::msg::DetectionArray msg;
   // msg.header.stamp = this->now();
-  // msg.header.frame_id = "armor_detector";
+  // msg.header.frame_id = "rc_detector";
   // msg.detections.clear();
 
   for (const auto & detection : detections) {
@@ -199,7 +192,7 @@ yolov8_msgs::msg::DetectionArray InferencerNode::convert_to_msg(
 {
   yolov8_msgs::msg::DetectionArray msg;
   // msg.header.stamp = this->now();
-  // msg.header.frame_id = "armor_detector";
+  // msg.header.frame_id = "rc_detector";
   // msg.detections.clear();
 
   for (const auto & detection : detections) {
@@ -219,22 +212,23 @@ yolov8_msgs::msg::DetectionArray InferencerNode::convert_to_msg(
 }
 #endif
 
-void InferencerNode::getParams() {
+void InferencerNode::getParams()
+{
   // @TODO vision_bringup里面这里还是获取不了yaml的参数不知道为什么，详情见notion中的ROS
 
-  debug_ = this->declare_parameter("debug", true);
+  debug_ = this->declare_parameter<bool>("debug", true);
   debug_ = this->get_parameter("debug").as_bool();
 
   // cam_rgb_topic_ = this->declare_parameter("cam_rgb_topic", "/image_raw");
-  cam_rgb_topic_ = this->declare_parameter("cam_rgb_topic", "/camera/color/image_raw");
+  cam_rgb_topic_ = this->declare_parameter<std::string>("cam_rgb_topic", "/camera/color/image_raw");
   cam_rgb_topic_ = this->get_parameter("cam_rgb_topic").as_string();
 }
 
-}  // namespace rc_auto_aim
+}  // namespace rc_detector
 
 #include "rclcpp_components/register_node_macro.hpp"
 
 // Register the component with class_loader.
 // This acts as a sort of entry point, allowing the component to be discoverable when its library
 // is being loaded into a running process.
-RCLCPP_COMPONENTS_REGISTER_NODE(rc_auto_aim::InferencerNode)
+RCLCPP_COMPONENTS_REGISTER_NODE(rc_detector::InferencerNode)

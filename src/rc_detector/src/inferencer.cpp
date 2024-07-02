@@ -1,4 +1,4 @@
-#include "armor_detector/inferencer.h"
+#include "rc_detector/inferencer.h"
 #include "yolov8_msgs/msg/detection.hpp"
 #include "yolov8_msgs/msg/bounding_box2_d.hpp"
 

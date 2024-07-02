@@ -1,9 +1,12 @@
-# rc_auto_aim:
-detector_node:
+/rc_serial_driver:
   ros__parameters:
-    debug: true
-    # cam_rgb_topic: /camera/depth/image_rect_raw
-    cam_rgb_topic: /image_raw
+    device_name: /dev/ttyACM0
+    # device_name: /dev/ttyUSB0
+    baud_rate: 115200
+    flow_control: none
+    parity: none
+    stop_bits: "1"
+
 
 /v4l2_camera_node:
   ros__parameters:
@@ -13,3 +16,9 @@ detector_node:
     image_size:
       - 1280
       - 720
+
+
+/cam_detector_container:
+  ros__parameters:
+    cam_rgb_topic: /image_raw
+    debug: True

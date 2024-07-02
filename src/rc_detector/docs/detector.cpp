@@ -1,10 +1,10 @@
-// // #include "armor_detector/detector.hpp"
-// #include "armor_detector/detector.hpp"
+// // #include "rc_detector/detector.hpp"
+// #include "rc_detector/detector.hpp"
 // #include <vector>
 // #include <opencv2/opencv.hpp>
 // #include <omp.h>
 
-// namespace rc_auto_aim{
+// namespace rc_detector{
 //     Detector ::Detector(const threshold_params &params)
 //         : thres(params) {}
 
@@ -12,7 +12,7 @@
 //     {
 //         cv::Mat blurred;
 //         cv::GaussianBlur(rgb_image,blurred,cv::Size(11,11),0);
-        
+
 //         cv::Mat hsv_image;
 //         cv::cvtColor(blurred,hsv_image,cv::COLOR_BGR2HSV);
 
@@ -88,7 +88,7 @@
 //             }
 
 //             //圆心
-//             cv::Point2f center; 
+//             cv::Point2f center;
 //             float radius;
 //             // use the largest contour to compute the minimum enclosing circle and centroid
 //             cv::minEnclosingCircle(cnts[largestContourIndex], center, radius);
@@ -104,7 +104,7 @@
 //                     std::cout << center << std::endl;
 
 //                     //传递目标信息到函数外，供发布者发布
-                    
+
 //                     ball.u = center.x;
 //                     ball.v = center.y;
 //                     ball.r = radius;
@@ -115,4 +115,3 @@
 //     }
 
 // }
-

@@ -6,8 +6,8 @@
 #ifndef JETSON_DETECT_YOLOV8_HPP
 #define JETSON_DETECT_YOLOV8_HPP
 #include "NvInferPlugin.h"
-#include "armor_detector/common.hpp"
 #include "fstream"
+#include "rc_detector/common.hpp"
 using namespace det;
 
 class YOLOv8 {
