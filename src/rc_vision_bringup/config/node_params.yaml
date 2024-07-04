@@ -20,5 +20,6 @@
 
 /cam_detector_container:
   ros__parameters:
-    cam_rgb_topic: /image_raw
+    # cam_rgb_topic: /image_raw
+    cam_rgb_topic: /camera/color/image_raw
     debug: True

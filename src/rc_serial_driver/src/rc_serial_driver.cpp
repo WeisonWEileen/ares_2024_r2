@@ -22,7 +22,7 @@
 #include "rc_serial_driver/packet.hpp"
 #include "rc_serial_driver/rc_serial_driver.hpp"
 
-// #include "yolov8_msgs/msg/detection.hpp"
+
 
 namespace rc_serial_driver
 {
@@ -78,7 +78,11 @@ namespace rc_serial_driver
         // aiming_point_.lifetime = rclcpp::Duration::from_seconds(0.1);
 
         // Create Subscription                                    DetectionArray
-        target_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
+        // target_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
+        //   "/cmd_vel", rclcpp::SensorDataQoS(),
+        //   std::bind(&RCSerialDriver::sendData, this, std::placeholders::_1));
+
+        target_sub_ = this->create_subscription<yolov8_msgs::msg::KeyPoint3DArray::SharedPtr>(
           "/cmd_vel", rclcpp::SensorDataQoS(),
           std::bind(&RCSerialDriver::sendData, this, std::placeholders::_1));
     }
@@ -175,7 +179,8 @@ namespace rc_serial_driver
     }
 
     //accept ball-tracking data, and give four motors velocity
-    void RCSerialDriver::sendData(const geometry_msgs::msg::Twist::SharedPtr msg)
+    // void RCSerialDriver::sendData(const geometry_msgs::msg::Twist::SharedPtr msg)
+    void RCSerialDriver::sendData(const yolov8_msgs::msg::KeyPoint3DArray msg)
     {
         const static std::map<std::string, uint8_t> id_unit8_map{
             {"", 0}, {"outpost", 0}, {"1", 1}, {"1", 1}, {"2", 2}, {"3", 3}, {"4", 4}, {"5", 5}, {"guard", 6}, {"base", 7}};
@@ -188,105 +193,115 @@ namespace rc_serial_driver
         try
         {
             SendPacket packet;
-            packet.chasis_vx = 1.0f;
 
-            // packet.chasis_vx = 0.0f;
-            packet.chasis_vy = 0.0f;
-            packet.chasis_w = 0.0f;
-            packet.x_ball = 0.0f;
-            packet.y_ball =  0.0f;
-            packet.vaccum = 0;
-            // packet.chasis_vx = 2.0f;
-            // packet.chasis_vx = 3.0f;
-            // packet.chasis_vx = 4.0f;
-            // packet.chasis_vx = 5.0f;
-            // packet.chasis_vx = 6.0f;
+            if (!msg->data.empty()) {
+              // 如果检测不为空
+              auto first_ball = msg->data[0];
+              target_ball_[0] = first_ball.point.x;
+              target_ball_[1] = first_ball.point.y;
+            } else {
+              // 如果检测为空
+              target_ball_[0] = 0;
+              target_ball_[1] = 0;
+            }
+            packet.xdot
+              // packet.chasis_vx = msg->point.x;
+              // packet.chasis_vy = msg->point.y;
+              // packet.chasis_w = msg->point.z;
 
-            // //如果检测到了球(R/B,P)
-            // if (num_detections > 0)
-            // {
-            //     //@TODO 现在是不高效的，先写出来尝试吧
+              // // packet.chasis_vx = 0.0f;
+              // packet.chasis_vy = 0.0f;
+              // packet.chasis_w = 0.0f;
+              // packet.x_ball = 0.0f;
+              // packet.y_ball =  0.0f;
+              // packet.vaccum = 0;
 
-            //     //运动学解算公式
-            //     // motor_3508[0].desireRpm = (-chassis_vxyz.vx + chassis_vxyz.vy + chassis_vxyz.wz) * rpmCoeff;
-            //     // motor_3508[1].desireRpm = -(chassis_vxyz.vx + chassis_vxyz.vy - chassis_vxyz.wz) * rpmCoeff;
-            //     // motor_3508[2].desireRpm = -(-chassis_vxyz.vx + chassis_vxyz.vy - chassis_vxyz.wz) * rpmCoeff;
-            //     // motor_3508[3].desireRpm = (chassis_vxyz.vx + chassis_vxyz.vy + chassis_vxyz.wz) * rpmCoeff;
+              // //如果检测到了球(R/B,P)
+              // if (num_detections > 0)
+              // {
+              //     //@TODO 现在是不高效的，先写出来尝试吧
 
-            //     //遍历，找出来半径最大的那个球,先归0，方式上一帧msg的数据影响
-            //     max_radius = 0;
-            //     exist_result = 0;
+              //     //运动学解算公式
+              //     // motor_3508[0].desireRpm = (-chassis_vxyz.vx + chassis_vxyz.vy + chassis_vxyz.wz) * rpmCoeff;
+              //     // motor_3508[1].desireRpm = -(chassis_vxyz.vx + chassis_vxyz.vy - chassis_vxyz.wz) * rpmCoeff;
+              //     // motor_3508[2].desireRpm = -(-chassis_vxyz.vx + chassis_vxyz.vy - chassis_vxyz.wz) * rpmCoeff;
+              //     // motor_3508[3].desireRpm = (chassis_vxyz.vx + chassis_vxyz.vy + chassis_vxyz.wz) * rpmCoeff;
 
-            //     for (const auto &detection : msg->detections)
-            //     {
-            //         if (detection.class_id != 3)
-            //         {
-            //             continue; // 如果不是蓝球，就跳过
-            //         }
+              //     //遍历，找出来半径最大的那个球,先归0，方式上一帧msg的数据影响
+              //     max_radius = 0;
+              //     exist_result = 0;
 
-            //         //如果是蓝球，那么求出最大的半径对应的目标点，目前半径是直接取x值,因为x值在取球过程中快消失的时候比较稳定
-            //         // if (detection.bbox.size.x > max_radius)
-            //         // {
-            //             // max_radius = detection.size.x;
-            //         target_point = detection.bbox.center.position.x;
-            //         // }
+              //     for (const auto &detection : msg->detections)
+              //     {
+              //         if (detection.class_id != 3)
+              //         {
+              //             continue; // 如果不是蓝球，就跳过
+              //         }
 
-            //         exist_result = 1;
-            //     }
+              //         //如果是蓝球，那么求出最大的半径对应的目标点，目前半径是直接取x值,因为x值在取球过程中快消失的时候比较稳定
+              //         // if (detection.bbox.size.x > max_radius)
+              //         // {
+              //             // max_radius = detection.size.x;
+              //         target_point = detection.bbox.center.position.x;
+              //         // }
 
-            //     // 如果检测到了R/B
-            //     if (exist_result)
-            //     {
-            //         //像素中心点是320，对应球心偏左
-            //         if (target_point  > 400)
-            //         {
-            //             packet.chasis_motor01 = -700.0f;
-            //             packet.chasis_motor02 = -700.0f;
-            //             packet.chasis_motor03 = -700.0f;
-            //             packet.chasis_motor04 = -700.0f;
-            //         }
-            //         //对应球心偏右
-            //         else if (target_point < 240)
-            //         {
-            //             packet.chasis_motor01 = 700.0f;
-            //             packet.chasis_motor02 = 700.0f;
-            //             packet.chasis_motor03 = 700.0f;
-            //             packet.chasis_motor04 = 700.0f;
-            //         }
-            //         //对应球心在中间，直接向前开
-            //         else 
-            //         {
-            //             // packet.chasis_motor01 =  700.0f;
-            //             // packet.chasis_motor02 = -700.0f;
-            //             // packet.chasis_motor03 =  700.0f;
-            //             // packet.chasis_motor04 = -700.0f;
-            //             packet.chasis_motor01 = -700.0f;
-            //             packet.chasis_motor02 = 700.0f;
-            //             packet.chasis_motor03 = 700.0f;
-            //             packet.chasis_motor04 = -700.0f;
-            //         }
-            //     }
-            
-            //     //对应只有紫球的情况
-            //     else
-            //     {
-            //         packet.chasis_motor01 = 0.0f;
-            //         packet.chasis_motor02 = 0.0f;
-            //         packet.chasis_motor03 = 0.0f;
-            //         packet.chasis_motor04 = 0.0f;
-            //     }
-            // }
-            // //如果没有检测到球
-            // else{
-            //     packet.chasis_motor01 = 0.0f;
-            //     packet.chasis_motor02 = 0.0f;
-            //     packet.chasis_motor03 = 0.0f;
-            //     packet.chasis_motor04 = 0.0f;
-            // }
+              //         exist_result = 1;
+              //     }
 
-            // crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
+              //     // 如果检测到了R/B
+              //     if (exist_result)
+              //     {
+              //         //像素中心点是320，对应球心偏左
+              //         if (target_point  > 400)
+              //         {
+              //             packet.chasis_motor01 = -700.0f;
+              //             packet.chasis_motor02 = -700.0f;
+              //             packet.chasis_motor03 = -700.0f;
+              //             packet.chasis_motor04 = -700.0f;
+              //         }
+              //         //对应球心偏右
+              //         else if (target_point < 240)
+              //         {
+              //             packet.chasis_motor01 = 700.0f;
+              //             packet.chasis_motor02 = 700.0f;
+              //             packet.chasis_motor03 = 700.0f;
+              //             packet.chasis_motor04 = 700.0f;
+              //         }
+              //         //对应球心在中间，直接向前开
+              //         else
+              //         {
+              //             // packet.chasis_motor01 =  700.0f;
+              //             // packet.chasis_motor02 = -700.0f;
+              //             // packet.chasis_motor03 =  700.0f;
+              //             // packet.chasis_motor04 = -700.0f;
+              //             packet.chasis_motor01 = -700.0f;
+              //             packet.chasis_motor02 = 700.0f;
+              //             packet.chasis_motor03 = 700.0f;
+              //             packet.chasis_motor04 = -700.0f;
+              //         }
+              //     }
 
-            std::vector<uint8_t> data = toVector(packet);
+              //     //对应只有紫球的情况
+              //     else
+              //     {
+              //         packet.chasis_motor01 = 0.0f;
+              //         packet.chasis_motor02 = 0.0f;
+              //         packet.chasis_motor03 = 0.0f;
+              //         packet.chasis_motor04 = 0.0f;
+              //     }
+              // }
+              // //如果没有检测到球
+              // else{
+              //     packet.chasis_motor01 = 0.0f;
+              //     packet.chasis_motor02 = 0.0f;
+              //     packet.chasis_motor03 = 0.0f;
+              //     packet.chasis_motor04 = 0.0f;
+              // }
+
+              // crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
+
+              std::vector<uint8_t>
+                data = toVector(packet);
             serial_driver_->port()->send(data);
 
         }

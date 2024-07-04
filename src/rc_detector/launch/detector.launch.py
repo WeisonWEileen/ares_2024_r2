@@ -35,7 +35,7 @@ def generate_launch_description():
 
     rc_projector_node = Node(
         package="rc_detector",
-        executable="rc_armor_projector_node",
+        executable="rc_projector_node",
         namespace="",
         output="screen",
         emulate_tty=True,

@@ -70,7 +70,7 @@ ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
     });
   RCLCPP_INFO(this->get_logger(), "Ready to create keypoint3d publisher.");
   keypoint3d_pub_ = this->create_publisher<yolov8_msgs::msg::KeyPoint3DArray>(
-    "/detector/keypoint3d", rclcpp::SensorDataQoS());
+    "/rc_decision/keypoint3d", rclcpp::SensorDataQoS());
 
   sync_ = std::make_unique<message_filters::Synchronizer<MySyncPolicy>>(
     MySyncPolicy(200), box_detection_sub_, dep_image_sub_);
@@ -159,6 +159,17 @@ void ProjectorNode::project_to_3d_and_publish(
     //   this->get_logger(), "arm_point: (%f, %f, %f)", arm_point_tf2.x(), arm_point_tf2.y(),
     //   arm_point_tf2.z());
     yolov8_msgs::msg::KeyPoint3D keypoint3d;
+    
+
+    // --------------------------------------------- //
+    // 先暂时用着 linear x linear y linear z 作为球的坐标
+    // geometry_msgs::msg::twist keypoint3d;
+    // keypoint3d.linear.x = arm_point_tf2.x();
+    // keypoint3d.linear.y = arm_point_tf2.y();
+    // keypoint3d.linear.z = arm_point_tf2.z();
+
+
+    // -------------------------------------------- //
 
     // ball_marker_.id++;
     // ball_marker_.pose.position.x = keypoint3d.point.x = arm_point_tf2.x();
@@ -176,11 +187,15 @@ void ProjectorNode::project_to_3d_and_publish(
     // keypoint3d.point.x = x;
     // keypoint3d.point.y = y;
     // keypoint3d.point.z = z;
+    // RCLCPP_INFO(this->get_logger(), "Ready to create keypoint3d publisher.");
+    RCLCPP_INFO(
+      this->get_logger(), "3D: %f, %f, %f", keypoint3d.point.x, keypoint3d.point.y, keypoint3d.point.z);
+
     keypoint3d_array_.data.emplace_back(keypoint3d);
     ball_marker_array_.markers.emplace_back(ball_marker_);
   }
   // 3d坐标发布
-  keypoint3d_pub_->publish(keypoint3d_array);
+  keypoint3d_pub_->publish(keypoint3d_array_);
   publishMarkers();
 }
 

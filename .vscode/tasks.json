@@ -4,7 +4,7 @@
             "label": "build detector package",
             "detail": "Build ROS 2 workspace",
             "type": "shell",
-            "command": "colcon build --symlink-install --packages-select armor_detector --parallel-workers 14",
+            "command": "colcon build --symlink-install --packages-select rc_detector --parallel-workers 14",
             // "command":"colcon build --symlink-install --parallel-workers 14",
             "group": {
                 "kind": "build",

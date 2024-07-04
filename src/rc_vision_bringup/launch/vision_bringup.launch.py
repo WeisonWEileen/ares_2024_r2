@@ -11,6 +11,7 @@ node_params = os.path.join(
 )
 
 
+
 def generate_launch_description():
 
     from launch_ros.descriptions import ComposableNode
@@ -18,12 +19,11 @@ def generate_launch_description():
     from launch.actions import TimerAction, Shutdown
     from launch import LaunchDescription
 
-    def get_camera_node(package, plugin, name):
+    def get_composable_node(package, plugin, name):
         return ComposableNode(
             package=package,
             plugin=plugin,
             name=name,
-            parameters=[node_params],
             extra_arguments=[{"use_intra_process_comms": True}],
         )
 
@@ -46,22 +46,22 @@ def generate_launch_description():
 
     # --------------------------------------#
     # --------composable_node part----------#
-    v4l2_camera_node = get_camera_node(
+    v4l2_camera_node = get_composable_node(
         "v4l2_camera", "v4l2_camera::V4L2Camera", "v4l2_camera_node"
     )
 
-    inferencer_node = get_camera_node(
+    inferencer_node = get_composable_node(
         "rc_detector", "rc_detector::InferencerNode", "inferencer_node"
     )
 
-    projector_node = get_camera_node(
+    projector_node = get_composable_node(
         "rc_detector", "rc_detector::ProjectorNode", "projector_node"
     )
 
     # 总的接口
     cam_detector = get_camera_detector_projector_container(
 
-        v4l2_camera_node,
+        # v4l2_camera_node,
         inferencer_node,
         # projector_node
     )
@@ -125,7 +125,7 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            # realsense_launch,
+            realsense_launch,
             cam_detector
         ]
     )

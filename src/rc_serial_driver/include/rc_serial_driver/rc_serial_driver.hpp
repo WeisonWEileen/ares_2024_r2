@@ -21,7 +21,8 @@
 #include <thread>
 #include <vector>
 
-#include "yolov8_msgs/msg/detection_array.hpp"
+// #include "yolov8_msgs/msg/detection_array.hpp"
+#include "yolov8_msgs/msg/key_point3_d.hpp"
 
 
 
@@ -39,7 +40,7 @@ namespace rc_serial_driver
 
         void receiveData();
 
-        void sendData(geometry_msgs::msg::Twist::SharedPtr msg);
+        void sendData(yolov8_msgs::msg::Keypoint3D msg);
 
         void reopenPort();
 

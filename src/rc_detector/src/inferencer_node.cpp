@@ -216,7 +216,7 @@ void InferencerNode::getParams()
 {
   // @TODO vision_bringup里面这里还是获取不了yaml的参数不知道为什么，详情见notion中的ROS
 
-  debug_ = this->declare_parameter<bool>("debug", true);
+  debug_ = this->declare_parameter<bool>("debug", false);
   debug_ = this->get_parameter("debug").as_bool();
 
   // cam_rgb_topic_ = this->declare_parameter("cam_rgb_topic", "/image_raw");
