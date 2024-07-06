@@ -47,21 +47,24 @@ InferencerNode::InferencerNode(const rclcpp::NodeOptions & options)
     cam_rgb_topic_, rclcpp::SensorDataQoS(),
     std::bind(&InferencerNode::imageCallback, this, std::placeholders::_1));
 
+  // 这里占时没有用到
   init_pos_srv_ = this->create_service<rc_interface_msgs::srv::InitPos>(
     "/rc_decision/init_pose",
     std::bind(
       &InferencerNode::init_pos_callback, this, std::placeholders::_1, std::placeholders::_2));
 
-  balls_pub_ = this->create_publisher<yolov8_msgs::msg::DetectionArray>("/detector/balls", 10);
+  std::string result_pub_topic =
+    this->declare_parameter<std::string>("publish_topic", "/results");
+  result_pub_topic = this->get_parameter("publish_topic").as_string();
+
+  balls_pub_ = this->create_publisher<yolov8_msgs::msg::DetectionArray>(result_pub_topic, 10);
   inferencer_ = initInferencer();
 
   //发布图像可视化
   if (debug_) {
     RCLCPP_INFO(this->get_logger(), "ready to create bounding box drawer");
-    result_pub_ = image_transport::create_publisher(this, "/detector/result");
+    createDebugPublishers();
   }
-
-
 }
 
 void InferencerNode::imageCallback(const sensor_msgs::msg::Image::ConstSharedPtr rgb_img_msg)
@@ -166,7 +169,9 @@ void InferencerNode::detectBalls(const sensor_msgs::msg::Image::ConstSharedPtr &
 
 void InferencerNode::createDebugPublishers()
 {
-  result_pub_ = image_transport::create_publisher(this, "/detector/result");
+  std::string result_pub_topic = this->declare_parameter<std::string>("publish_rgb_topic", "/rgb_results");
+  result_pub_topic = this->get_parameter("publish_rgb_topic").as_string();
+  result_pub_ = image_transport::create_publisher(this, result_pub_topic);
 }
 
 void InferencerNode::destroyDebugPublishers() { result_pub_.shutdown(); }

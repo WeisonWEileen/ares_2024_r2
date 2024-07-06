@@ -1,0 +1,28 @@
+/v4l2_camera_node:
+  ros__parameters:
+    camera_info_url: package://rc_vision_bringup/config/camera_info.yaml
+    auto_exposure: 1
+    exposure_time_absolute: 112
+    image_size:
+      - 1280
+      - 720
+      # - 640
+      # - 480
+
+
+/v4l2_detector_container:
+  ros__parameters:
+    # 注意有两个相机，对应不同的话题
+    # cam_rgb_topic: /image_raw
+    cam_rgb_topic: /image_raw
+    publish_topic: /v4l2/results
+    publish_rgb_topic: /v4l2/rgb_results
+    debug: True
+    # 对应红方和蓝方的，红方在左侧场地，蓝方在右侧场地
+    # 0: red, 1: blue
+    # default game_mode: False
+    game_mode: True
+
+
+    
+    

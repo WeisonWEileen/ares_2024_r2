@@ -45,7 +45,7 @@ namespace rc_detector
 {
 ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
 : Node("armor_projection_node"),
-  box_detection_sub_(this, "/detector/balls"),
+  box_detection_sub_(this, "/realsense/results"),
   dep_image_sub_(this, "/camera/aligned_depth_to_color/image_raw")
 {
   // test

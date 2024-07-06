@@ -6,10 +6,13 @@ sys.path.append(
     os.path.join(get_package_share_directory("rc_vision_bringup"), "launch")
 )
 
-node_params = os.path.join(
+realsense_node_params = os.path.join(
     get_package_share_directory("rc_vision_bringup"), "config", "realsense.yaml"
 )
 
+v4l2_node_params = os.path.join(
+    get_package_share_directory("rc_vision_bringup"), "config", "v4l2.yaml"
+)
 
 
 def generate_launch_description():
@@ -19,54 +22,78 @@ def generate_launch_description():
     from launch.actions import TimerAction, Shutdown
     from launch import LaunchDescription
 
-    def get_composable_node(package, plugin, name):
+    def get_composable_node(package, plugin, name, param_path):
         return ComposableNode(
             package=package,
             plugin=plugin,
             name=name,
-            parameters=[node_params],
+            parameters=[param_path],
             extra_arguments=[{"use_intra_process_comms": True}],
         )
 
-    def get_camera_detector_projector_container(*regestered_nodes):
+    def get_camera_detector_projector_container(regestered_nodes,compo_name,param_path):
         return ComposableNodeContainer(
-            name="cam_detector_container",
+            name=compo_name,
             namespace="",
             package="rclcpp_components",
             executable="component_container",
-            composable_node_descriptions=list(regestered_nodes),
+            composable_node_descriptions=regestered_nodes,
             output="both",
             emulate_tty=True,
-            parameters=[node_params],
+            parameters=[param_path],
             ros_arguments=[
                 "--ros-args",
                 # "--log-level",
             ],
             on_exit=Shutdown(),
-    )
+        )
 
     # --------------------------------------#
     # --------composable_node part----------#
-    v4l2_camera_node = get_composable_node(
-        "v4l2_camera", "v4l2_camera::V4L2Camera", "v4l2_camera_node"
-    )
 
-    inferencer_node = get_composable_node(
-        "rc_detector", "rc_detector::InferencerNode", "inferencer_node"
+    # ------------realsense detector fetch ballpath---------------  #
+    inferencer_node_1 = get_composable_node(
+        "rc_detector",
+        "rc_detector::InferencerNode",
+        "inferencer_node",
+        realsense_node_params,
     )
 
     projector_node = get_composable_node(
-        "rc_detector", "rc_detector::ProjectorNode", "projector_node"
+        "rc_detector", "rc_detector::ProjectorNode", "projector_node", realsense_node_params
     )
+    # --------------v4l2 detector find ball path--------------- #
+
+    inferencer_node_2 = get_composable_node(
+        "rc_detector",
+        "rc_detector::InferencerNode",
+        "inferencer_node",
+        v4l2_node_params,
+    )
+
+    v4l2_camera_node = get_composable_node(
+        "v4l2_camera", 
+        "v4l2_camera::V4L2Camera",
+        "v4l2_camera_node",
+        v4l2_node_params
+    )
+
+    # ----------------------------- #
 
     # 总的接口
 
-    cam_detector = get_camera_detector_projector_container(
-
-        v4l2_camera_node,
-        # inferencer_node,
-        # projector_node
+    realsense_detector = get_camera_detector_projector_container(
+        [inferencer_node_1, projector_node],
+        "realsense_detector_container",
+        realsense_node_params
     )
+
+    v4l2_detector = get_camera_detector_projector_container(
+        [inferencer_node_2, v4l2_camera_node],
+        "v4l2_detector_container",
+        v4l2_node_params
+    )
+
     # --------composable_node part----------#
     # --------------------------------------#
 
@@ -125,9 +152,8 @@ def generate_launch_description():
     # --------serial driver---------#
     # ------------------------------#
 
-    return LaunchDescription(
-        [
-            # realsense_launch,
-            cam_detector
-        ]
-    )
+    return LaunchDescription([
+        realsense_launch, 
+        realsense_detector, 
+        v4l2_detector
+        ])
