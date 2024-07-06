@@ -7,7 +7,7 @@ sys.path.append(
 )
 
 node_params = os.path.join(
-    get_package_share_directory("rc_vision_bringup"), "config", "node_params.yaml"
+    get_package_share_directory("rc_vision_bringup"), "config", "realsense.yaml"
 )
 
 
@@ -60,6 +60,7 @@ def generate_launch_description():
     )
 
     # 总的接口
+
     cam_detector = get_camera_detector_projector_container(
 
         v4l2_camera_node,

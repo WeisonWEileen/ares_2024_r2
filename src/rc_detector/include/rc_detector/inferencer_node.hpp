@@ -28,6 +28,9 @@
 #include "rc_detector/yolov8.hpp"
 #include <std_msgs/msg/bool.hpp>
 
+// self defined ros msgs
+#include "rc_interface_msgs/srv/init_pos.hpp"
+
 const std::vector<std::string> CLASS_NAMES = {"red", "blue", "purple", "rim"};
 const std::vector<std::vector<unsigned int>> COLORS = {
   {2555, 0, 0}, {0, 255, 0}, {128, 128, 0}, {170, 170, 128}};
@@ -119,13 +122,24 @@ private:
   std::vector<Detection> output_;
 
   // 用于发布机器人是在1区还是二区，一区是false，二区是true
+
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr position_;
 
   // 决策相关
 
   // 红方还是蓝方
   // 0 false 对应红方，1 true 对应蓝方
-  bool game_mode_;
+  rclcpp::Service<rc_interface_msgs::srv::InitPos>::SharedPtr init_pos_srv_;
+  void init_pos_callback(
+    const std::shared_ptr<rc_interface_msgs::srv::InitPos::Request> request,
+    std::shared_ptr<rc_interface_msgs::srv::InitPos::Response> response);
+
+  // 用于储存一区二区的位置
+  uint8_t pos_mode_;
+  
+
+  // 用于设置红蓝模式
+  uint8_t game_mode_;
 
   bool calculate_rim_ = 1;
 };

@@ -37,7 +37,7 @@ namespace rc_detector
 {
 //message_filter 不能使用赋值运算符，因此放在这里赋予话题，初始化
 InferencerNode::InferencerNode(const rclcpp::NodeOptions & options)
-: Node("rc_inferencer_node"), count_(0)
+: Node("rc_inferencer_node"), count_(0), pos_mode_(0)
 {
   RCLCPP_INFO(this->get_logger(), "InferencerNode has been started.");
 
@@ -46,6 +46,11 @@ InferencerNode::InferencerNode(const rclcpp::NodeOptions & options)
   rgb_image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
     cam_rgb_topic_, rclcpp::SensorDataQoS(),
     std::bind(&InferencerNode::imageCallback, this, std::placeholders::_1));
+
+  init_pos_srv_ = this->create_service<rc_interface_msgs::srv::InitPos>(
+    "/rc_decision/init_pose",
+    std::bind(
+      &InferencerNode::init_pos_callback, this, std::placeholders::_1, std::placeholders::_2));
 
   balls_pub_ = this->create_publisher<yolov8_msgs::msg::DetectionArray>("/detector/balls", 10);
   inferencer_ = initInferencer();
@@ -253,8 +258,15 @@ void InferencerNode::getParams()
   cam_rgb_topic_ = this->declare_parameter<std::string>("cam_rgb_topic", "/camera/color/image_raw");
   cam_rgb_topic_ = this->get_parameter("cam_rgb_topic").as_string();
 
-  game_mode_ = this->declare_parameter<bool>("game_mode", false);
-  game_mode_ = this->get_parameter("game_mode").as_bool();
+  pos_mode_ = this->declare_parameter<bool>("game_mode", false);
+  pos_mode_ = this->get_parameter("game_mode").as_bool();
+}
+
+void InferencerNode::init_pos_callback(
+  const std::shared_ptr<rc_interface_msgs::srv::InitPos::Request> request,
+  std::shared_ptr<rc_interface_msgs::srv::InitPos::Response> response){
+  response->posmode = pos_mode_;
+  RCLCPP_WARN_STREAM(this->get_logger(), "send posemod " << pos_mode_);
 }
 
 }  // namespace rc_detector
