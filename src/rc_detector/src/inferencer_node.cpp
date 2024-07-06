@@ -55,6 +55,8 @@ InferencerNode::InferencerNode(const rclcpp::NodeOptions & options)
     RCLCPP_INFO(this->get_logger(), "ready to create bounding box drawer");
     result_pub_ = image_transport::create_publisher(this, "/detector/result");
   }
+
+
 }
 
 void InferencerNode::imageCallback(const sensor_msgs::msg::Image::ConstSharedPtr rgb_img_msg)
@@ -100,6 +102,33 @@ void InferencerNode::detectBalls(const sensor_msgs::msg::Image::ConstSharedPtr &
 #ifdef ONNX
   auto start = std::chrono::high_resolution_clock::now();
   output_ = inferencer_->runInference(rgb_img_);  //这里面已经改变了img
+
+  // ------  //
+  //  0 --> rim
+  //  1 --> blue
+  //  2 --> purple
+  //  3 --> red
+  // ------  //
+
+
+  // 现在这个版本连球框都不识别
+  // 如果是蓝方，过滤掉红球
+  if(game_mode_){
+    output_.erase(
+      std::remove_if(
+        output_.begin(), output_.end(),
+        [](const Detection & detection) { return detection.class_id != 1; }),
+      output_.end());
+  }
+  // 如果是红方，过滤掉蓝球
+  else {
+    output_.erase(
+      std::remove_if(
+        output_.begin(), output_.end(),
+        [](const Detection & detection) { return detection.class_id != 3; }),
+      output_.end());
+  }
+
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end - start;
   std::cout << "Time to run inference: " << diff.count() << " s\n";
@@ -111,6 +140,7 @@ void InferencerNode::detectBalls(const sensor_msgs::msg::Image::ConstSharedPtr &
   balls_pub_->publish(boxes_msg_);
 
 #elif defined TENSORRT
+// TensorRT版本在还有加上决策
   objs_.clear();
   inferencer_->copy_from_Mat(rgb_img_, size_);
   auto start = std::chrono::system_clock::now();
@@ -222,6 +252,9 @@ void InferencerNode::getParams()
   // cam_rgb_topic_ = this->declare_parameter("cam_rgb_topic", "/image_raw");
   cam_rgb_topic_ = this->declare_parameter<std::string>("cam_rgb_topic", "/camera/color/image_raw");
   cam_rgb_topic_ = this->get_parameter("cam_rgb_topic").as_string();
+
+  game_mode_ = this->declare_parameter<bool>("game_mode", false);
+  game_mode_ = this->get_parameter("game_mode").as_bool();
 }
 
 }  // namespace rc_detector

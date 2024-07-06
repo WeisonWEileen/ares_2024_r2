@@ -38,6 +38,9 @@
 #include "yolov8_msgs/msg/detection_array.hpp"
 #include "yolov8_msgs/msg/key_point3_d.hpp"
 #include "yolov8_msgs/msg/key_point3_d_array.hpp"
+
+
+
 namespace rc_detector
 {
 ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
@@ -69,7 +72,7 @@ ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
       aligned_depth_caminfo_sub_.reset();
     });
   RCLCPP_INFO(this->get_logger(), "Ready to create keypoint3d publisher.");
-  keypoint3d_pub_ = this->create_publisher<yolov8_msgs::msg::KeyPoint3DArray>(
+  keypoint3d_pub_ = this->create_publisher<yolov8_msgs::msg::KeyPoint3D>(
     "/rc_decision/keypoint3d", rclcpp::SensorDataQoS());
 
   sync_ = std::make_unique<message_filters::Synchronizer<MySyncPolicy>>(
@@ -80,7 +83,10 @@ ProjectorNode::ProjectorNode(const rclcpp::NodeOptions & options)
     &ProjectorNode::keypoint_imageCallback, this, std::placeholders::_1, std::placeholders::_2));
 
   init_tf2();
-  init_Marker();
+  // init_Marker();
+
+  // 用于发布marker
+  none_keypoint3d_msg_.id = -1;
 }
 
 void ProjectorNode::keypoint_imageCallback(
@@ -105,6 +111,7 @@ void ProjectorNode::project_to_3d_and_publish(
   keypoint3d_array_.data.clear();
   ball_marker_array_.markers.clear();
   ball_marker_.id = 0;
+
 
   //@TODO 其实这里面可不可以并行加速？
   for (auto & box : boxes_msg->detections) {
@@ -167,10 +174,9 @@ void ProjectorNode::project_to_3d_and_publish(
     // keypoint3d.linear.x = arm_point_tf2.x();
     // keypoint3d.linear.y = arm_point_tf2.y();
     // keypoint3d.linear.z = arm_point_tf2.z();
-
-
     // -------------------------------------------- //
 
+    // 可视化的之后使用
     // ball_marker_.id++;
     // ball_marker_.pose.position.x = keypoint3d.point.x = arm_point_tf2.x();
     // ball_marker_.pose.position.y = keypoint3d.point.y = arm_point_tf2.y();
@@ -181,22 +187,48 @@ void ProjectorNode::project_to_3d_and_publish(
     keypoint3d.point.y = arm_point_tf2.y();
     keypoint3d.point.z = arm_point_tf2.z();
 
-    //yolov8_msgs 发布
-    // keypoint3d.id = box.class_id;
-    // // keypoint3d.score = box.confidence;
-    // keypoint3d.point.x = x;
-    // keypoint3d.point.y = y;
-    // keypoint3d.point.z = z;
-    // RCLCPP_INFO(this->get_logger(), "Ready to create keypoint3d publisher.");
-    RCLCPP_INFO(
-      this->get_logger(), "3D: %f, %f, %f", keypoint3d.point.x, keypoint3d.point.y, keypoint3d.point.z);
+  // //判断有无球吸附成功
+  //   if (keypoint3d.point.z  > 0.2){
+  //     keypoint3d.attached = true;
+  //   }
+  //   else{
+  //     keypoint3d.attached = false;
+  //   }
+
+  RCLCPP_INFO(
+        this->get_logger(), "3D: %f, %f, %f", keypoint3d.point.x, keypoint3d.point.y,
+        keypoint3d.point.z);
+
 
     keypoint3d_array_.data.emplace_back(keypoint3d);
-    ball_marker_array_.markers.emplace_back(ball_marker_);
+    // ball_marker_array_.markers.emplace_back(ball_marker_);
+      //yolov8_msgs 发布
+      // keypoint3d.id = box.class_id;
+      // // keypoint3d.score = box.confidence;
+      // keypoint3d.point.x = x;
+      // keypoint3d.point.y = y;
+      // keypoint3d.point.z = z;
+      // RCLCPP_INFO(this->get_logger(), "Ready to create keypoint3d publisher.");
   }
+  // 最简单的直接发布最近的点
+
+  auto closest_keypoint = std::min_element(
+    keypoint3d_array_.data.begin(), keypoint3d_array_.data.end(),
+    [](const auto & a, const auto & b) {
+      return std::pow(a.point.x, 2) + std::pow(a.point.y, 2) <
+             std::pow(b.point.x, 2) + std::pow(b.point.y, 2);
+    });
+
   // 3d坐标发布
-  keypoint3d_pub_->publish(keypoint3d_array_);
-  publishMarkers();
+  if (closest_keypoint != keypoint3d_array_.data.end())
+  {
+    keypoint3d_pub_->publish(*closest_keypoint);
+  }
+  // 如果没有识别结果
+  else{
+    keypoint3d_pub_->publish(none_keypoint3d_msg_);
+  }
+  // publishMarkers();
 }
 
 void ProjectorNode::make_camera_roboarm_tranform()

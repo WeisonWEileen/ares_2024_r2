@@ -30,6 +30,7 @@
 
 #include "message_filters/subscriber.h"
 #include "message_filters/time_synchronizer.h"
+#include "std_msgs/msg/bool.hpp"
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/static_transform_broadcaster.h"
 #include "tf2_ros/transform_broadcaster.h"
@@ -69,7 +70,9 @@ private:
     const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & box_msg,
     const sensor_msgs::msg::Image::ConstSharedPtr & dep_img_msg);
 
-  rclcpp::Publisher<yolov8_msgs::msg::KeyPoint3DArray>::SharedPtr keypoint3d_pub_;
+  rclcpp::Publisher<yolov8_msgs::msg::KeyPoint3D>::SharedPtr keypoint3d_pub_;
+
+  // rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr attached_pub_;
 
   //获取相机rgb和深度对齐之后的内参，用于计算三维坐标，收到一次就关
   std::shared_ptr<sensor_msgs::msg::CameraInfo> aligned_depth_caminfo_;
@@ -110,13 +113,16 @@ private:
   // std::string target_frame_;
   // std::shared_ptr<tf2_filter> tf_filter_
 
-  //球的rviz可视化的信息
+  //@TODO, 后续可以取消，球的rviz可视化的信息
   visualization_msgs::msg::Marker ball_marker_;
   visualization_msgs::msg::MarkerArray ball_marker_array_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr ball_marker_pub_;
 
   // 储存球的三维坐标
+  yolov8_msgs::msg::KeyPoint3D none_keypoint3d_msg_;
+  yolov8_msgs::msg::KeyPoint3D keypoint3d_;
   yolov8_msgs::msg::KeyPoint3DArray keypoint3d_array_;
+
 
   void init_Marker();
   void publishMarkers();

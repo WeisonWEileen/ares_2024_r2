@@ -24,6 +24,7 @@ def generate_launch_description():
             package=package,
             plugin=plugin,
             name=name,
+            parameters=[node_params],
             extra_arguments=[{"use_intra_process_comms": True}],
         )
 
@@ -61,8 +62,8 @@ def generate_launch_description():
     # 总的接口
     cam_detector = get_camera_detector_projector_container(
 
-        # v4l2_camera_node,
-        inferencer_node,
+        v4l2_camera_node,
+        # inferencer_node,
         # projector_node
     )
     # --------composable_node part----------#
@@ -112,20 +113,20 @@ def generate_launch_description():
 
     # ------------------------------#
     # --------serial driver---------#
-    rc_serial_driver_node = Node(
-        package='rc_serial_driver',
-        executable='rc_serial_driver_node',
-        namespace='',
-        output='screen',
-        emulate_tty=True,
-        parameters=[node_params],
-    )
+    # rc_serial_driver_node = Node(
+    #     package='rc_serial_driver',
+    #     executable='rc_serial_driver_node',
+    #     namespace='',
+    #     output='screen',
+    #     emulate_tty=True,
+    #     parameters=[node_params],
+    # )
     # --------serial driver---------#
     # ------------------------------#
 
     return LaunchDescription(
         [
-            realsense_launch,
+            # realsense_launch,
             cam_detector
         ]
     )

@@ -11,7 +11,7 @@
 
   <depend>rc_detector</depend>
   <depend>v4l2_camera</depend>
-  <depend>rc_serial_driver</depend>
+  <!-- <depend>rc_serial_driver</depend> -->
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

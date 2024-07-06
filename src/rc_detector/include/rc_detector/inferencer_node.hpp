@@ -26,6 +26,7 @@
 #include "message_filters/time_synchronizer.h"
 #include "rc_detector/common.hpp"
 #include "rc_detector/yolov8.hpp"
+#include <std_msgs/msg/bool.hpp>
 
 const std::vector<std::string> CLASS_NAMES = {"red", "blue", "purple", "rim"};
 const std::vector<std::vector<unsigned int>> COLORS = {
@@ -42,6 +43,8 @@ private:
   // 获取参数的接入点
   void getParams();
   // @brief callback function for image
+
+
 
   void imageCallback(const sensor_msgs::msg::Image::ConstSharedPtr rgb_img_msg);
   // 解算3D坐标的回调函数入口
@@ -115,7 +118,14 @@ private:
   //to store the output for each frame
   std::vector<Detection> output_;
 
+  // 用于发布机器人是在1区还是二区，一区是false，二区是true
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr position_;
+
   // 决策相关
+
+  // 红方还是蓝方
+  // 0 false 对应红方，1 true 对应蓝方
+  bool game_mode_;
 
   bool calculate_rim_ = 1;
 };

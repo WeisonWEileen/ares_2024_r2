@@ -67,7 +67,7 @@ class TrackingNode(Node):
         image_sub = message_filters.Subscriber(
             self, Image, "image_raw", qos_profile=image_qos_profile)
         detections_sub = message_filters.Subscriber(
-            self, DetectionArray, "detections", qos_profile=10)
+            self, DetectionArray, "detector/result", qos_profile=10)
 
         self._synchronizer = message_filters.ApproximateTimeSynchronizer(
             (image_sub, detections_sub), 10, 0.5)
